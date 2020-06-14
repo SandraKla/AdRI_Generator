@@ -15,3 +15,9 @@ Download the Zip-File from the Generator, set the working direction to the order
 library(shiny)
 runApp("app_generator.R")
 ```
+Or use the Shiny function ```runGitHub()```:
+
+```bash
+library(shiny)
+runGitHub("Age-dependent-Reference-Intervals","SandraKla")
+```
