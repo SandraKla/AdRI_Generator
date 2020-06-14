@@ -1,6 +1,6 @@
 # Age-dependent-Reference-Intervals_Generator 
 
-<img src="Logo.svg" width="225px" height="150px" align="right"/>
+<img src="www/Logo.svg" width="225px" height="150px" align="right"/>
 
 Generator for generating age-dependent data from biomarkers using functions or given reference intervals
 
