@@ -19,5 +19,5 @@ Or use the Shiny function ```runGitHub()```:
 
 ```bash
 library(shiny)
-runGitHub("Age-dependent-Reference-Intervals","SandraKla")
+runGitHub("Age-dependent-Reference-Intervals_Generator","SandraKla")
 ```
