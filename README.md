@@ -13,7 +13,7 @@ Download the Zip-File from the Generator, set the working direction to the order
 
 ```bash
 library(shiny)
-runApp("app_generator.R")
+runApp("app.R")
 ```
 Or use the Shiny function ```runGitHub()```:
 
