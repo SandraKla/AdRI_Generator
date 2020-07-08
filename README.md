@@ -15,7 +15,7 @@ Download the Zip-File from this Shiny App and set the working direction to the o
 library(shiny)
 runApp("app.R")
 ```
-Or use the Shiny function ```runGitHub()``` from the package *shiny*:
+Or use the function ```runGitHub()``` from the package *shiny*:
 
 ```bash
 library(shiny)
