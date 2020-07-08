@@ -4,19 +4,18 @@ source("generator.R")
 source("percentile.R")
 
 ####################################### Libraries #################################################
-# 
-# if("DT" %in% rownames(installed.packages())){
-#  library(DT)} else{
-#    install.packages("DT")}
-# 
-# 
-# if("shiny" %in% rownames(installed.packages())){
-#  library(shiny)} else{
-#    install.packages("shiny")}
-# 
-# if("gamlss" %in% rownames(installed.packages())){
-#  library(gamlss)} else{
-#    install.packages("gamlss")}
+ 
+if("DT" %in% rownames(installed.packages())){
+  library(DT)} else{
+  install.packages("DT")}
+ 
+if("shiny" %in% rownames(installed.packages())){
+  library(shiny)} else{
+  install.packages("shiny")}
+
+if("gamlss" %in% rownames(installed.packages())){
+  library(gamlss)} else{
+  install.packages("gamlss")}
 
 ####################################### User Interface ############################################
 
