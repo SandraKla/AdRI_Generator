@@ -1,23 +1,23 @@
-# Age-dependent-Reference-Intervals_Generator 
+# Age-dependent-Reference-Intervals Generator 
 
 <img src="www/Logo.svg" width="225px" height="150px" align="right"/>
 
-Generator for generating age-dependent data from biomarkers using functions or given reference intervals
+**Generator for generating age-dependent data from analytes using functions or given reference intervals!**
 
 
-This Shiny App is a generator to create age-dependent data from biomarkers, see the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals_Generator/wiki). The generated data can be downloaded and can be used in [Age-dependent-Reference-Intervals](https://github.com/SandraKla/Age-dependent-Reference-Intervals), see also the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals/wiki/Data-from-Generator). 
+This Shiny App is a generator to create age-dependent data from analytes, see the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals_Generator/wiki). The data can be downloaded and can be used in the Shiny App **AdRI** [Age-dependent-Reference-Intervals](https://github.com/SandraKla/Age-dependent-Reference-Intervals), see also the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals/wiki/Data-from-Generator). 
 
 ## Installation
 
-Download the Zip-File from the Generator, set the working direction to the order with the Shiny App and run:
+Download the Zip-File from this Shiny App and set the working direction to the order and run:
 
 ```bash
 library(shiny)
 runApp("app.R")
 ```
-Or use the Shiny function ```runGitHub()```:
+Or use the Shiny function ```runGitHub()``` from the package *shiny*:
 
 ```bash
 library(shiny)
-runGitHub("Age-dependent-Reference-Intervals_Generator","SandraKla")
+runGitHub("Age-dependent-Reference-Intervals_Generator", "SandraKla")
 ```

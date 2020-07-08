@@ -1,58 +1,59 @@
-################################## Scripts #########################################
+####################################### Scripts ###################################################
 
 source("generator.R")
 source("percentile.R")
 
-################################## Libraries #######################################
+####################################### Libraries #################################################
+# 
+# if("DT" %in% rownames(installed.packages())){
+#  library(DT)} else{
+#    install.packages("DT")}
+# 
+# 
+# if("shiny" %in% rownames(installed.packages())){
+#  library(shiny)} else{
+#    install.packages("shiny")}
+# 
+# if("gamlss" %in% rownames(installed.packages())){
+#  library(gamlss)} else{
+#    install.packages("gamlss")}
 
-if("DT" %in% rownames(installed.packages())){
- library(DT)} else{
-   install.packages("DT")}
-
-
-if("shiny" %in% rownames(installed.packages())){
- library(shiny)} else{
-   install.packages("shiny")}
-
-################################## User Interface ##################################
+####################################### User Interface ############################################
 
 ui <- fluidPage(
   
   theme = "style.css", 
-  navbarPage("Generator for Age-dependent Analyte Data",
+  navbarPage("Generator for Age-dependent-Reference-Intervals (AdRI)",
              
-  ################################ Data-Generator ##################################
+  ##################################### Data-Generator ############################################
   
     tabPanel("Generator", icon = icon("calculator"),
              
       sidebarLayout(      
-        sidebarPanel(width = 4,
+        sidebarPanel(width = 3,
                     
-          sliderInput("age_generator", "Maximum age in years:", 0, 123, 18),
+          sliderInput("age_generator", "Maximum age in years:", 0, 100, 18),
           sliderInput("age_generator_steps", "Age steps in days:", 1, 365, 100),
           sliderInput("ill_factor", "Select the pathological cases in %:", 0, 0.2, 0),
-          numericInput("mu_factor_ill", "Factor added to mu for sick patients:", 1 , min = 0, max = 1000),
+          numericInput("mu_factor_ill", "Factor added to mu for the pathological cases:", 1 , min = 0, max = 10000),
           
-          selectInput("family_generator", "Distribution", choices = list("Normal-Distribution" = "NO", 
-                                                                         "Log-Normal-Distribution" = "LOGNO",
-                                                                         "Box-Cole and Green Distribution" = "BCCG", 
-                                                                         "Box-Cole Green Distribution orig." = "BCCGo",
+          selectInput("family_generator", "Distribution", choices = list("Normaldistribution" = "NO", 
+                                                                         "Log-Normaldistribution" = "LOGNO",
+                                                                         "Box-Cole and Green Distribution" = "BCCG",
                                                                          "Box-Cole Green Exp. Distribution" = "BCPE",
-                                                                         "Box-Cole Green Exp. Distribution orig." = "BCPEo",
-                                                                         "Box-Cole Green t-Distribution" = "BCT", 
-                                                                         "Box-Cole Green t-Distribution orig." = "BCTo")),
+                                                                         "Box-Cole Green t-Distribution" = "BCT")),
           numericInput("n_", "Number of observations:", 100, min = 10, max = 10000),
           textInput("text", "Name the Analyte:", value = "Analyte"),
           textInput("text_unit", "Unit of the Analyte:", value = "Unit"),
-          hr(),
+          hr(), helpText("The linear function is: y = Slope*x + Intercept and the exponentially y = A*e^(x*B)."),
           
           ######################## Mu Simulation ###################################
           
           selectInput("trend_mu", "Trend for mu:", c(Linear = "linear", Exponentially = "exponentially")),
-          conditionalPanel(condition = "input.trend_mu == 'linear'",  numericInput("intercept_mu", "Intercept:", 0),
+          conditionalPanel(condition = "input.trend_mu == 'linear'",  numericInput("intercept_mu", "Intercept:", 1),
                            numericInput("slope_mu", "Slope:", 0)),
-          conditionalPanel(condition = "input.trend_mu == 'exponentially'",  numericInput("a_mu", "A:", 0),
-                           numericInput("b_mu", "B:", 0)), hr(),
+          conditionalPanel(condition = "input.trend_mu == 'exponentially'",  numericInput("a_mu", "A:", 1),
+                           numericInput("b_mu", "B:", 0)), 
           
           ######################## Sigma Simulation ################################
           
@@ -60,89 +61,91 @@ ui <- fluidPage(
           conditionalPanel(condition = "input.trend_sigma == 'linear'",  numericInput("intercept_sigma", "Intercept:", 1),
                            numericInput("slope_sigma", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_sigma == 'exponentially'",  numericInput("a_sigma", "A:", 1),
-                           numericInput("b_sigma", "B:", 0)), hr(),
+                           numericInput("b_sigma", "B:", 0)),
           
           ######################## Nu Simulation ###################################
           
           selectInput("trend_nu", "Trend for nu", c(Linear = "linear", Exponentially = "exponentially")),
-          conditionalPanel(condition = "input.trend_nu == 'linear'",  numericInput("intercept_nu", "Intercept:", 0),
+          conditionalPanel(condition = "input.trend_nu == 'linear'",  numericInput("intercept_nu", "Intercept:", 1),
                            numericInput("slope_nu", "Slope:", 0)),
-          conditionalPanel(condition = "input.trend_nu == 'exponentially'",  numericInput("a_nu", "A:", 0),
-                           numericInput("b_nu", "B:", 0)), hr(),
+          conditionalPanel(condition = "input.trend_nu == 'exponentially'",  numericInput("a_nu", "A:", 1),
+                           numericInput("b_nu", "B:", 0)),
           
           ######################## Tau Simulation ##################################
           
           selectInput("trend_tau", "Trend for Tau", c(Linear = "linear", Exponentially = "exponentially")),
-          conditionalPanel(condition = "input.trend_tau == 'linear'",  numericInput("intercept_tau", "Intercept:", 0),
+          conditionalPanel(condition = "input.trend_tau == 'linear'",  numericInput("intercept_tau", "Intercept:", 1),
                            numericInput("slope_tau", "Slope:", 0)),
-          conditionalPanel(condition = "input.trend_tau == 'exponentially'",  numericInput("a_tau", "A:", 0),
+          conditionalPanel(condition = "input.trend_tau == 'exponentially'",  numericInput("a_tau", "A:", 1),
                            numericInput("b_tau", "B:", 0))),              
             
-        mainPanel(width = 8,
+        mainPanel(width = 9,
           
           tabsetPanel(
             tabPanel("Home", icon = icon("chart-line"), 
-                     p("Generator for age-dependent data. Negative values are deleted automatically and save the data in 
-                     the form needed for Shiny App", strong("Age-dependent-Reference-Intervals"),". The data is saved
-                     with no gender, unique and the station is Generator!"), br(), 
+                     p(strong("This Shiny App is a generator to create age-dependent data from labor analytes."), "Available are following distributions:
+                     Normaldistribution (μ and σ), Lognormaldistribution (μ and σ), Box-Cox Cole and Green Distribution (μ, σ and ν),
+                     Box-Cox t-Distribution (μ, σ, ν and τ) and Box-Cox Power Exponential Distribution (μ, σ, ν and τ). 
+                     The parameters μ, σ, ν and τ are changing over the time with a linear or an exponentially function.
+                     The linear function is: y = m*x + b and the exponentially y = a*e^(x*b). All negative values are deleted automatically 
+                     and save the data in the form needed for Shiny App", strong("Age-dependent-Reference-Intervals"),"(AdRI). The data is saved
+                     with no gender, unique values and the station is named Generator!"),
                      downloadButton("download_plot","Plot"), plotOutput("plot_generator", height = "500px")),
             
-            tabPanel("Table", icon = icon("table"), downloadButton("download_data", "Data"), verbatimTextOutput("summary"),
-                     DT::dataTableOutput("table_generator")),
+            tabPanel("Table", icon = icon("table"), downloadButton("download_data", "Data"),
+                     DT::dataTableOutput("table_generator"), verbatimTextOutput("summary")),
             tabPanel("Settings", icon = icon("cogs"), downloadButton("download_settings", "Settings"), 
                      DT::dataTableOutput("settings")))
         )
       )
     ),
       
-    ############################## Generator with given Percentiles ################
+    ################################### Generator with given Percentiles ##########################
   
     tabPanel("Percentile", icon = icon("folder"),
       
       sidebarLayout( 
-        sidebarPanel(width = 2,
+        sidebarPanel(width = 3,
           
           selectInput("data", "Select data with reference intervals:", choice = list.files(pattern = ".csv", recursive = TRUE)), hr(),
-          numericInput("n_percentile", "Number of observations:", 10, min = 10, max = 1000),
+          numericInput("n_percentile", "Number of observations:", 1, min = 1, max = 1000),
           textInput("text_percentile", "Name of the Value:", value = "Analyt"),
           textInput("text_unit_percentile", "Unit of the Value:", value = "Unit")
         ),
                
-        mainPanel(width = 10, 
+        mainPanel(width = 9, 
           tabsetPanel(
             tabPanel("Home", icon = icon("home"),
-                     p("Generate normally distributed data with given reference intervals, examples are from Hemoglobin (0-18 Years)
-                       from the publication Next-generation reference intervals for pediatric 
-                       hematology [Zierk et.al. (2019)]. Hemoglobin is an important 
-                       iron-containing oxygen-transport protein in the erythrocytes and the changes of the value by newborn are 
-                       important to prevent jaundice in babies and to prevent anemia, this important reference intervals for babys and 
-                       children can be modelled in the Shiny App",strong("Age-dependent-Reference-Intervals"),". The data is smoothed 
-                       with the function smooth.spline()."), br(),
+                     p(strong("With given 95% Reference Intervals from normally distributed data new data can be generated!")," For this 
+                     the data from the publication:", strong("Next-generation reference intervals for pediatric 
+                     hematology [Zierk et.al. (2019)]"), "is used for Hemoglobindata (Loading the examples and the download takes a while!
+                     The downloaded data contains 10 datapoints per day). 
+                     Hemoglobin is an important iron-containing oxygen-transport protein in the erythrocytes and the changes of the value 
+                     by newborn are important to prevent jaundice in babies and to prevent anemia. The data is smoothed with smooth.spline()."),
                     downloadButton("download_precentile", "Data"), plotOutput("percentile", height = "500px")),
             
-            tabPanel("Hemoglobin", icon = icon("venus"), 
-                     downloadButton("download_hem_women", "Data"), plotOutput("hemoglobin_women", height = "1000px")),
-            tabPanel("Hemoglobin", icon = icon("mars"), 
-                     downloadButton("download_hem_men", "Data"), plotOutput("hemoglobin_men", height = "1000px"))
+            tabPanel("Example - Hemoglobin", icon = icon("venus"), 
+                     downloadButton("download_hem_women", "Data"), plotOutput("hemoglobin_women", height = "800px")),
+            tabPanel("Example - Hemoglobin", icon = icon("mars"), 
+                     downloadButton("download_hem_men", "Data"), plotOutput("hemoglobin_men", height = "800px"))
           )
         )
       )
-    ),
-      
-    tabPanel("About", icon = icon("info"), includeHTML("www/about.html"))
+    )
   )
 )
 
-################################## Server ##########################################
+####################################### Server ####################################################
 
 server <- function(input, output){
   
   options(shiny.sanitize.errors = TRUE)
   
-  ################################ Reactive Expressions ############################
+  ##################################### Reactive Expressions ######################################
   
   data_generator <- reactive({
 
+    # Composition of users settings
     if(input$trend_mu == "linear"){
       formula_mu <- paste("linear(i,",input$slope_mu,",",input$intercept_mu,")")}
     
@@ -173,65 +176,59 @@ server <- function(input, output){
     generate_data
   })
   
-  ################################ Output ##########################################
-  ################################ Data-Generator ##################################
+  ##################################### Output ####################################################
+  ##################################### Data-Generator ############################################
   
   output$table_generator <- DT::renderDataTable({
-    
     DT::datatable(data_generator(), caption = htmltools::tags$caption(style = 'caption-side: bottom; text-align: center;',
       'Table: Dataset'))
   })
   
   output$summary <- renderPrint({
-    
     summary(data_generator())
   })
   
   output$plot_generator <- renderPlot({
-    
     plot(data_generator()[,3] ~ data_generator()[,2], xlab = "Age [Days]", ylab =  paste0(data_generator()[1,7]," [",input$text_unit,"]"), 
          pch = 20, cex = 0.75, col = "grey")
   })
   
   output$settings <- DT::renderDataTable({
-    
     data_settings <- t(data.frame("Age" = input$age_generator,
-                                   "Age steps" = input$age_generator_steps,
-                                   "Distribution" = input$family_generator,
-                                   "Number of observations" = input$n_,
-                                   "Name" = input$text,
-                                   "Unit" = input$text_unit,
-                                   "Trend of mu" = input$trend_mu,
-                                   "Trend of sigma" = input$trend_sigma,
-                                   "Trend of nu" = input$trend_nu,
-                                   "Trend of tau" = input$trend_tau,
-                                   "Intercept of mu" = input$intercept_mu,
-                                   "Slope of mu" = input$slope_mu,
-                                   "A of mu" = input$a_mu, 
-                                   "B of mu" = input$b_mu,
-                                   "Intercept of sigma" = input$intercept_sigma,
-                                   "Slope of sigma" = input$slope_sigma,
-                                   "A of sigma" = input$a_sigma, 
-                                   "B of sigma" = input$b_sigma,
-                                   "Intercept of nu" = input$intercept_nu,
-                                   "Slope of nu" = input$slope_nu,
-                                   "A of nu" = input$a_nu, 
-                                   "B of nu" = input$b_nu,
-                                   "Intercept of tau" = input$intercept_tau,
-                                   "Slope of tau" = input$slope_tau,
-                                   "A of tau" = input$a_tau, 
-                                   "B of tau" = input$b_tau, 
-                                   check.names = FALSE))
+                                  "Age steps" = input$age_generator_steps,
+                                  "Distribution" = input$family_generator,
+                                  "Number of observations" = input$n_,
+                                  "Name" = input$text,
+                                  "Unit" = input$text_unit,
+                                  "Trend of mu" = input$trend_mu,
+                                  "Trend of sigma" = input$trend_sigma,
+                                  "Trend of nu" = input$trend_nu,
+                                  "Trend of tau" = input$trend_tau,
+                                  "Linear: Intercept of mu" = input$intercept_mu,
+                                  "Linear: Slope of mu" = input$slope_mu,
+                                  "Exponentially: A of mu" = input$a_mu, 
+                                  "Exponentially: B of mu" = input$b_mu,
+                                  "Linear: Intercept of sigma" = input$intercept_sigma,
+                                  "Linear: Slope of sigma" = input$slope_sigma,
+                                  "Exponentially: A of sigma" = input$a_sigma, 
+                                  "Exponentially: B of sigma" = input$b_sigma,
+                                  "Linear: Intercept of nu" = input$intercept_nu,
+                                  "Linear: Slope of nu" = input$slope_nu,
+                                  "Exponentially: A of nu" = input$a_nu, 
+                                  "Exponentially: B of nu" = input$b_nu,
+                                  "Linear: Intercept of tau" = input$intercept_tau,
+                                  "Linear: Slope of tau" = input$slope_tau,
+                                  "Exponentially: A of tau" = input$a_tau, 
+                                  "Exponentially: B of tau" = input$b_tau, 
+                                  check.names = FALSE))
     colnames(data_settings) <- c("Setting")
-    DT::datatable(data_settings, caption = htmltools::tags$caption(style = 'caption-side: bottom; text-align: center;',
-                                                                   'Table: Settings'),
+    DT::datatable(data_settings, caption = htmltools::tags$caption(style = 'caption-side: bottom; text-align: center;','Table: Settings'),
                   options = list(lengthMenu = c(6,30), pageLength = 30))
   })
   
   ################################ Generator (Percentile) ##########################
   
   output$percentile <- renderPlot({
-    
     percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
   }) 
   
@@ -242,7 +239,7 @@ server <- function(input, output){
     
     data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
                                        stringsAsFactors = FALSE)
-    percentile_hemoglobin(data_hemoglobin_women, input$n_percentile)
+    percentile_hemoglobin(data_hemoglobin_women, 10)
   })
   
   
@@ -250,7 +247,7 @@ server <- function(input, output){
     
     data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
                                      stringsAsFactors = FALSE)
-    percentile_hemoglobin(data_hemoglobin_men, input$n_percentile)
+    percentile_hemoglobin(data_hemoglobin_men, 10)
   })
 
   
@@ -270,32 +267,32 @@ server <- function(input, output){
     },
     content = function(file) {
       data_settings <- t(data.frame("Age" = input$age_generator,
-                                     "Age steps" = input$age_generator_steps,
-                                     "Distribution" = input$family_generator,
-                                     "Number of observations" = input$n_,
-                                     "Name" = input$text,
-                                     "Unit" = input$text_unit,
-                                     "Trend of mu" = input$trend_mu,
-                                     "Trend of sigma" = input$trend_sigma,
-                                     "Trend of nu" = input$trend_nu,
-                                     "Trend of tau" = input$trend_tau,
-                                     "Intercept of mu" = input$intercept_mu,
-                                     "Slope of mu" = input$slope_mu,
-                                     "A of mu" = input$a_mu, 
-                                     "B of mu" = input$b_mu,
-                                     "Intercept of sigma" = input$intercept_sigma,
-                                     "Slope of sigma" = input$slope_sigma,
-                                     "A of sigma" = input$a_sigma, 
-                                     "B of sigma" = input$b_sigma,
-                                     "Intercept of nu" = input$intercept_nu,
-                                     "Slope of nu" = input$slope_nu,
-                                     "A of nu" = input$a_nu, 
-                                     "B of nu" = input$b_nu,
-                                     "Intercept of tau" = input$intercept_tau,
-                                     "Slope of tau" = input$slope_tau,
-                                     "A of tau" = input$a_tau, 
-                                     "B of tau" = input$b_tau, 
-                                     check.names = FALSE))
+                                    "Age steps" = input$age_generator_steps,
+                                    "Distribution" = input$family_generator,
+                                    "Number of observations" = input$n_,
+                                    "Name" = input$text,
+                                    "Unit" = input$text_unit,
+                                    "Trend of mu" = input$trend_mu,
+                                    "Trend of sigma" = input$trend_sigma,
+                                    "Trend of nu" = input$trend_nu,
+                                    "Trend of tau" = input$trend_tau,
+                                    "Linear: Intercept of mu" = input$intercept_mu,
+                                    "Linear: Slope of mu" = input$slope_mu,
+                                    "Exponentially: A of mu" = input$a_mu, 
+                                    "Exponentially: B of mu" = input$b_mu,
+                                    "Linear: Intercept of sigma" = input$intercept_sigma,
+                                    "Linear: Slope of sigma" = input$slope_sigma,
+                                    "Exponentially: A of sigma" = input$a_sigma, 
+                                    "Exponentially: B of sigma" = input$b_sigma,
+                                    "Linear: Intercept of nu" = input$intercept_nu,
+                                    "Linear: Slope of nu" = input$slope_nu,
+                                    "Exponentially: A of nu" = input$a_nu, 
+                                    "Exponentially: B of nu" = input$b_nu,
+                                    "Linear: Intercept of tau" = input$intercept_tau,
+                                    "Linear: Slope of tau" = input$slope_tau,
+                                    "Exponentially: A of tau" = input$a_tau, 
+                                    "Exponentially: B of tau" = input$b_tau,
+                                    check.names = FALSE))
       colnames(data_settings) <- c("Setting")
       write.csv2(data_settings, file)
     })
@@ -317,6 +314,7 @@ server <- function(input, output){
       paste0("Percentile_", Sys.Date(),".csv")
     },
     content = function(file) {
+      table_percentile <- percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
       write.csv2(table_percentile, file, row.names = FALSE)
   })
   
@@ -325,6 +323,10 @@ server <- function(input, output){
       paste0("Percentile_hemoglobin_women_", Sys.Date(),".csv")
     },
     content = function(file) {
+      
+      data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
+                                         stringsAsFactors = FALSE)
+      table_save <- percentile_hemoglobin(data_hemoglobin_women, 10)
       
       rows_table_ <- nrow(table_save) 
       table_save <- table_save[table_save$value > 0,] 
@@ -346,6 +348,10 @@ server <- function(input, output){
     },
     content = function(file) {
 
+      data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
+                                       stringsAsFactors = FALSE)
+      table_save <- percentile_hemoglobin(data_hemoglobin_men, 10)
+      
       rows_table_ <- nrow(table_save) 
       table_save <- table_save[table_save$value > 0,] 
       
@@ -360,5 +366,5 @@ server <- function(input, output){
       write.csv2(table_men, file, row.names = FALSE)
   })
 }
-################################## Run the application #############################
+####################################### Run the application #######################################
 shinyApp(ui = ui, server = server)

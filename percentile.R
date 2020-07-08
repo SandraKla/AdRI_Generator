@@ -1,24 +1,19 @@
-####################################################################################
-########### Script for the generation of given reference intervals #################
-####################################################################################
+###################################################################################################
+############ Script for the generation of given reference intervals ###############################
+###################################################################################################
 
-#' Generator for age-dependent values with data with given reference intervals
+#' Generator for age-dependent values with given 95% reference intervals
 #' Needed: Data with reference intervals (smaller age steps are better) from a normally 
-#' distrubted analyte!
-#' Function generate normally distributed data from the reference intervals!
+#' distrubted analyte, because the function generate normally distributed data from this reference intervals!
 #'  
 #' @param data_percentile Data with the reference intervals in .csv format
 #' @param n_ Number of observations
 #' @param text_name Name of the analyte
 #' @param text_unit Unit of the analyte
-#' @export
 
-percentile_function <- function(data_percentile, 
-                                n_, 
-                                text_name, 
-                                text_unit){
+percentile_function <- function(data_percentile, n_, text_name, text_unit){
   
-  # Read the data 
+  # Read the data (use the Template)
   reference_data_orig <- read.csv2(data_percentile, header = TRUE, sep = ";", dec = ",", na.strings = "", stringsAsFactors = FALSE)
   
   # Change the colnames and type of the columns
@@ -37,10 +32,11 @@ percentile_function <- function(data_percentile,
                                down = as.numeric(reference_data_orig$down), 
                                up = as.numeric(reference_data_orig$up))
 
+  # Get sigma and mu from normally distrubted data
   sigma <- (reference_data$up-reference_data$down)/(1.96--1.96) 
   # (Q97.5 - Q2.5)/sigma =  (pnorm(97.5)-pnorm(2.5))/1 = (1.96--1.96)/1
   mu  <- reference_data$up - 1.96*sigma
-  # mu <-reference_data$down + 1.96*sigma
+  # mu <- reference_data$down + 1.96*sigma
   
   # Save the mu and sigma for each datapoint
   reference_para <- data.frame(age = reference_data$age, mu = mu, sigma = sigma) 
@@ -60,25 +56,26 @@ percentile_function <- function(data_percentile,
   table_data_reference <- data.frame()
   
   for (i in 1:nrow(reference_para)){
-    percentile_data <- c(rnorm(n=n_,reference_para$mu[i],reference_para$sigma[i])) # make normally distributed data
+    # Make normally distributed data
+    percentile_data <- c(rnorm(n=n_,reference_para$mu[i],reference_para$sigma[i]))
     save_table <- data.frame(age = reference_para$age[i], value = percentile_data)
     table_data_reference <- rbind(table_data_reference, save_table)
   }
   
-  plot(table_data_reference$age, table_data_reference$value,  xlab = "Age [Days]", ylab =  paste0(text_name," [",text_unit,"]"), 
+  plot(table_data_reference$age, table_data_reference$value, xlab = "Age [Days]", ylab =  paste0(text_name," [",text_unit,"]"), 
        pch = 20, cex = 0.75, col = "grey")
 
   lines(smooth.spline(table_data_reference$age,table_data_reference$value))
  
-  ################################ Preprocessing ###################################
+  ##################################### Preprocessing #############################################
   
   rows_table_data_reference <- nrow(table_data_reference) # Save nrow from table
-  table_data_reference <- table_data_reference[table_data_reference$value > 0,] 
+  table_data_reference <- table_data_reference[table_data_reference$value > 0,] # Delete negative values
   
   if(!(rows_table_data_reference == nrow(table_data_reference))){
     print(paste("Warning!", rows_table_data_reference - nrow(table_data_reference) ,"values were negative and are deleted"))}
 
-  ################################ Save the data ###################################
+  ##################################### Save the data #############################################
   
   table_percentile <- data.frame(ALTER = table_data_reference$age/365, 
                                  ALTERTAG = table_data_reference$age, 
@@ -88,20 +85,17 @@ percentile_function <- function(data_percentile,
   table_percentile["EINSCODE"] <- "Generator"
   table_percentile["CODE1"] <- text_name
 
-  table_percentile <<- table_percentile
+  return(table_percentile)
 }
 
 #' Generator for age dependent values for hemoglobin from the publication:
 #' Zierk J, Hirschmann J, Toddenroth D, et al. Next-generation reference
 #' intervals for pediatric hematology. Clin Chem Lab Med. 2019;57(10):1595‐1607. doi:10.1515/cclm-2018-123
-#' Interessting are the Intervals from 0-180 days (fast changes) and from 1 to 18 years (slow changes)
 #' 
 #' @param reference_ Dataset with hemoglobin data (women and men)
 #' @param n_percentile Number of observations
-#' @export
 
-percentile_hemoglobin <- function(reference_, 
-                                  n_percentile = 10){
+percentile_hemoglobin <- function(reference_, n_percentile = 10){
   
   par(mfrow = c(2,1)) 
   
@@ -117,11 +111,9 @@ percentile_hemoglobin <- function(reference_,
   # (Q97.5 - Q2.5)/sigma =  (pnorm(97.5)-pnorm(2.5))/1 = (1.96--1.96)/1
   mu <- reference_data$up - 1.96*sigma
 
-  ################################ Save data from the hemoglobin ###################  
+  ##################################### Save data from the hemoglobin #############################  
   
-  reference_para <- data.frame(age = reference_data$age, 
-                               mu = mu, 
-                               sigma = sigma)
+  reference_para <- data.frame(age = reference_data$age, mu = mu, sigma = sigma)
 
   table_reference_data <- data.frame()
   
@@ -131,9 +123,9 @@ percentile_hemoglobin <- function(reference_,
     table_reference_data <- rbind(table_reference_data, save_table)
   }
   
-  table_save <<- table_reference_data
+  table_save <- table_reference_data
   
-  ################################ Data from 0 - 180 Days ##########################
+  ##################################### Data from 0 - 180 Days ####################################
 
   reference_data_newborn <- subset(reference_data, age <= 180, select = c(age, down, up)) 
   
@@ -141,7 +133,6 @@ percentile_hemoglobin <- function(reference_,
   mu <- reference_data_newborn$up - 1.96*sigma
   
   reference_para_newborn <- data.frame(age = reference_data_newborn$age, mu = mu, sigma = sigma)
-  
   table_newborn <- data.frame()
 
   for (i in 1:nrow(reference_para_newborn)){
@@ -151,12 +142,11 @@ percentile_hemoglobin <- function(reference_,
   }
   
   plot(table_newborn$age, table_newborn$value, pch = 20, cex = 0.75, col = "grey", xlab = "Age [Days]", ylab = "Hemoglobin [g/dl]")
-  lines(smooth.spline(table_newborn$age,table_newborn$value))
-  lines(reference_para_newborn$age, reference_para_newborn$mu, col = "indianred")
-  lines(reference_data_newborn$age, reference_data_newborn$down, col = "cornflowerblue")
-  lines(reference_data_newborn$age, reference_data_newborn$up, col = "cornflowerblue")
+  lines(reference_para_newborn$age, reference_para_newborn$mu, col = "indianred", lwd = 2)
+  lines(reference_data_newborn$age, reference_data_newborn$down, col = "cornflowerblue", lwd = 2)
+  lines(reference_data_newborn$age, reference_data_newborn$up, col = "cornflowerblue", lwd = 2)
   
-  ################################ Data from 1 - 18 Years ##########################
+  ##################################### Data from 1 - 18 Years ####################################
   
   reference_data_children <- subset(reference_data, age >= 365, select = c(age, down, up)) 
   
@@ -164,7 +154,6 @@ percentile_hemoglobin <- function(reference_,
   mu <- reference_data_children$up - 1.96*sigma
   
   reference_para_children <- data.frame(age = reference_data_children$age, mu = mu, sigma = sigma)
-  
   table_children <- data.frame()
 
   for (i in 1:nrow(reference_para_children)){
@@ -174,8 +163,9 @@ percentile_hemoglobin <- function(reference_,
   }
   
   plot(table_children$age, table_children$value, pch = 20, cex = 0.75, col = "grey", xlab = "Age [Days]", ylab = "Hemoglobin [g/dl]")
-  lines(smooth.spline(table_children$age,table_children$value))
-  lines(reference_para_children$age, reference_para_children$mu, col = "indianred")
-  lines(reference_data_children$age, reference_data_children$down, col = "cornflowerblue")
-  lines(reference_data_children$age, reference_data_children$up, col = "cornflowerblue")
+  lines(reference_para_children$age, reference_para_children$mu, col = "indianred", lwd = 2)
+  lines(reference_data_children$age, reference_data_children$down, col = "cornflowerblue", lwd = 2)
+  lines(reference_data_children$age, reference_data_children$up, col = "cornflowerblue", lwd = 2)
+  
+  return(table_save)
 }
