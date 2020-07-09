@@ -28,12 +28,12 @@ ui <- fluidPage(
   
     tabPanel("Generator", icon = icon("calculator"),
              
-      sidebarLayout(      
-        sidebarPanel(width = 3,
-                    
+      fluidRow(
+        column(3, wellPanel(
+                     
           sliderInput("age_generator", "Maximum age in years:", 0, 100, 18),
           sliderInput("age_generator_steps", "Age steps in days:", 1, 365, 100),
-          sliderInput("ill_factor", "Select the pathological cases in %:", 0, 0.2, 0),
+          sliderInput("ill_factor", "Select the pathological cases in %:", 0, 0.25, 0),
           numericInput("mu_factor_ill", "Factor added to mu for the pathological cases:", 1 , min = 0, max = 10000),
           
           selectInput("family_generator", "Distribution", choices = list("Normaldistribution" = "NO", 
@@ -43,16 +43,16 @@ ui <- fluidPage(
                                                                          "Box-Cole Green t-Distribution" = "BCT")),
           numericInput("n_", "Number of observations:", 100, min = 10, max = 10000),
           textInput("text", "Name the Analyte:", value = "Analyte"),
-          textInput("text_unit", "Unit of the Analyte:", value = "Unit"),
-          hr(), helpText("The linear function is: y = Slope*x + Intercept and the exponentially y = A*e^(x*B)."),
+          textInput("text_unit", "Unit of the Analyte:", value = "Unit"))),
           
           ######################## Mu Simulation ###################################
+        column(2, wellPanel(
           
           selectInput("trend_mu", "Trend for mu:", c(Linear = "linear", Exponentially = "exponentially")),
           conditionalPanel(condition = "input.trend_mu == 'linear'",  numericInput("intercept_mu", "Intercept:", 1),
                            numericInput("slope_mu", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_mu == 'exponentially'",  numericInput("a_mu", "A:", 1),
-                           numericInput("b_mu", "B:", 0)), 
+                           numericInput("b_mu", "B:", 0)), hr(),
           
           ######################## Sigma Simulation ################################
           
@@ -60,7 +60,7 @@ ui <- fluidPage(
           conditionalPanel(condition = "input.trend_sigma == 'linear'",  numericInput("intercept_sigma", "Intercept:", 1),
                            numericInput("slope_sigma", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_sigma == 'exponentially'",  numericInput("a_sigma", "A:", 1),
-                           numericInput("b_sigma", "B:", 0)),
+                           numericInput("b_sigma", "B:", 0)), hr(),
           
           ######################## Nu Simulation ###################################
           
@@ -68,17 +68,17 @@ ui <- fluidPage(
           conditionalPanel(condition = "input.trend_nu == 'linear'",  numericInput("intercept_nu", "Intercept:", 1),
                            numericInput("slope_nu", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_nu == 'exponentially'",  numericInput("a_nu", "A:", 1),
-                           numericInput("b_nu", "B:", 0)),
+                           numericInput("b_nu", "B:", 0)), hr(),
           
           ######################## Tau Simulation ##################################
           
-          selectInput("trend_tau", "Trend for Tau", c(Linear = "linear", Exponentially = "exponentially")),
+          selectInput("trend_tau", "Trend for tau", c(Linear = "linear", Exponentially = "exponentially")),
           conditionalPanel(condition = "input.trend_tau == 'linear'",  numericInput("intercept_tau", "Intercept:", 1),
                            numericInput("slope_tau", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_tau == 'exponentially'",  numericInput("a_tau", "A:", 1),
-                           numericInput("b_tau", "B:", 0))),              
+                           numericInput("b_tau", "B:", 0)))),              
             
-        mainPanel(width = 9,
+        mainPanel(width = 7,
           
           tabsetPanel(
             tabPanel("Home", icon = icon("chart-line"), 
@@ -118,9 +118,10 @@ ui <- fluidPage(
                      p(strong("With given 95% Reference Intervals from normally distributed data new data can be generated!")," For this 
                      the data from the publication:", strong("Next-generation reference intervals for pediatric 
                      hematology [Zierk et.al. (2019)]"), "is used for Hemoglobindata (Loading the examples and the download takes a while!
-                     The downloaded data contains 10 datapoints per day). 
+                     The downloaded data contains 10 datapoints per day. The given reference intervals are in blue and the median in red). 
                      Hemoglobin is an important iron-containing oxygen-transport protein in the erythrocytes and the changes of the value 
-                     by newborn are important to prevent jaundice in babies and to prevent anemia. The data is smoothed with smooth.spline()."),
+                     by newborn are important to prevent jaundice in babies and to prevent anemia. The data is smoothed with smooth.spline()
+                     for the models use the Shiny App AdRI."),
                     downloadButton("download_precentile", "Data"), plotOutput("percentile", height = "500px")),
             
             tabPanel("Example - Hemoglobin", icon = icon("venus"), 
@@ -203,32 +204,36 @@ server <- function(input, output){
                                   "Trend of sigma" = input$trend_sigma,
                                   "Trend of nu" = input$trend_nu,
                                   "Trend of tau" = input$trend_tau,
-                                  "Linear: Intercept of mu" = input$intercept_mu,
-                                  "Linear: Slope of mu" = input$slope_mu,
-                                  "Exponentially: A of mu" = input$a_mu, 
-                                  "Exponentially: B of mu" = input$b_mu,
-                                  "Linear: Intercept of sigma" = input$intercept_sigma,
-                                  "Linear: Slope of sigma" = input$slope_sigma,
-                                  "Exponentially: A of sigma" = input$a_sigma, 
-                                  "Exponentially: B of sigma" = input$b_sigma,
-                                  "Linear: Intercept of nu" = input$intercept_nu,
-                                  "Linear: Slope of nu" = input$slope_nu,
-                                  "Exponentially: A of nu" = input$a_nu, 
-                                  "Exponentially: B of nu" = input$b_nu,
-                                  "Linear: Intercept of tau" = input$intercept_tau,
-                                  "Linear: Slope of tau" = input$slope_tau,
-                                  "Exponentially: A of tau" = input$a_tau, 
-                                  "Exponentially: B of tau" = input$b_tau, 
+                                  "Linear (mu): Intercept of mu" = input$intercept_mu,
+                                  "Linear (mu): Slope of mu" = input$slope_mu,
+                                  "Exponentially (mu): A of mu" = input$a_mu, 
+                                  "Exponentially (mu): B of mu" = input$b_mu,
+                                  "Linear (sigma): Intercept of sigma" = input$intercept_sigma,
+                                  "Linear (sigma): Slope of sigma" = input$slope_sigma,
+                                  "Exponentially (sigma): A of sigma" = input$a_sigma, 
+                                  "Exponentially (sigma): B of sigma" = input$b_sigma,
+                                  "Linear (nu): Intercept of nu" = input$intercept_nu,
+                                  "Linear (nu): Slope of nu" = input$slope_nu,
+                                  "Exponentially (nu): A of nu" = input$a_nu, 
+                                  "Exponentially (nu): B of nu" = input$b_nu,
+                                  "Linear (tau): Intercept of tau" = input$intercept_tau,
+                                  "Linear (tau): Slope of tau" = input$slope_tau,
+                                  "Exponentially (tau): A of tau" = input$a_tau, 
+                                  "Exponentially (tau): B of tau" = input$b_tau, 
                                   check.names = FALSE))
     colnames(data_settings) <- c("Setting")
     DT::datatable(data_settings, caption = htmltools::tags$caption(style = 'caption-side: bottom; text-align: center;','Table: Settings'),
-                  options = list(lengthMenu = c(6,30), pageLength = 30))
+                  options = list(dom = 'ft', pageLength = 30))
   })
   
   ################################ Generator (Percentile) ##########################
   
   output$percentile <- renderPlot({
+    progress <- shiny::Progress$new()
+    progress$set(message = "Generate new data...", detail = "", value = 2)
+    
     percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
+    on.exit(progress$close())
   }) 
   
 
@@ -236,17 +241,26 @@ server <- function(input, output){
   
   output$hemoglobin_women <- renderPlot({
     
+    progress <- shiny::Progress$new()
+    progress$set(message = "Load Hemoglobin examples (Women)...", detail = "", value = 2)
+    
     data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
                                        stringsAsFactors = FALSE)
     percentile_hemoglobin(data_hemoglobin_women, 10)
+    on.exit(progress$close())
   })
   
   
   output$hemoglobin_men <- renderPlot({
     
+    
+    progress <- shiny::Progress$new()
+    progress$set(message = "Load Hemoglobin examples (Men)...", detail = "", value = 2)
+
     data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
                                      stringsAsFactors = FALSE)
     percentile_hemoglobin(data_hemoglobin_men, 10)
+    on.exit(progress$close())
   })
 
   
