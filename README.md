@@ -28,3 +28,5 @@ Or use the function ```runGitHub()``` from the package *shiny*:
 library(shiny)
 runGitHub("Age-dependent-Reference-Intervals_Generator", "SandraKla")
 ```
+
+All required packages are downloaded when starting this app or read in if they already exist, see also the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals_Generator/wiki) for the required packages.
