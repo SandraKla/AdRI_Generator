@@ -7,7 +7,7 @@
 
 This Shiny App is a generator to create age-dependent data from analytes, see the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals_Generator/wiki). The data can be downloaded and can be used in the Shiny App **AdRI** [Age-dependent-Reference-Intervals](https://github.com/SandraKla/Age-dependent-Reference-Intervals), see also the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals/wiki/Data-from-Generator). 
 
-<img src="shiny.png" align="center"/>
+<img src="www/shiny.png" align="center"/>
 
 ## Installation
 
