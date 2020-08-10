@@ -32,7 +32,7 @@ ui <- fluidPage(
           sliderInput("ill_factor", "Select the pathological cases in %:", 0, 0.25, 0),
           numericInput("mu_factor_ill", "Factor added to mu for the pathological cases:", 1 , min = 0, max = 10000),
           
-          selectInput("family_generator", "Distribution", choices = list("Normaldistribution" = "NO", 
+          selectInput("family_generator", "Distribution:", choices = list("Normaldistribution" = "NO", 
                                                                          "Log-Normaldistribution" = "LOGNO",
                                                                          "Box-Cole and Green Distribution" = "BCCG",
                                                                          "Box-Cole Green Exp. Distribution" = "BCPE",
@@ -79,13 +79,13 @@ ui <- fluidPage(
           tabsetPanel(
             tabPanel("Home", icon = icon("chart-line"), 
                      p(strong("This Shiny App is a generator to create age-dependent data from labor analytes."), "Available are following distributions:
-                     Normaldistribution (μ and σ), Lognormaldistribution (μ and σ), Box-Cox Cole and Green Distribution (μ, σ and ν),
-                     Box-Cox t-Distribution (μ, σ, ν and τ) and Box-Cox Power Exponential Distribution (μ, σ, ν and τ). 
+                     Normaldistribution (with μ and σ), Lognormaldistribution (with μ and σ), Box-Cox Cole & Green Distribution (with μ, σ and ν),
+                     Box-Cox t-Distribution (with μ, σ, ν and τ) and Box-Cox Power Exponential Distribution (with μ, σ, ν and τ). 
                      The parameters μ, σ, ν and τ are changing over the time with a linear or an exponentially function.
-                     The linear function is: y = m*x + b and the exponentially y = a*e^(x*b). All negative values are deleted automatically 
-                     and save the data in the form needed for Shiny App", strong("Age-dependent-Reference-Intervals"),"(AdRI). The data is saved
-                     with no gender, unique values and the station is named Generator!"),
-                     downloadButton("download_plot","Plot"), plotOutput("plot_generator", height = "500px")),
+                     The linear function is y = m*x + b and the exponentially y = a*e^(x*b). All negative values are deleted automatically 
+                     and the data is saved in the form needed for Shiny App", strong("Age-dependent-Reference-Intervals (AdRI)"),". 
+                     The data is saved with no gender, unique values and the station is named Generator!"),
+                     downloadButton("download_plot","Plot"), plotOutput("plot_generator", height = "600px")),
             
             tabPanel("Table", icon = icon("table"), downloadButton("download_data", "Data"),
                      DT::dataTableOutput("table_generator"), verbatimTextOutput("summary")),
@@ -111,13 +111,13 @@ ui <- fluidPage(
         mainPanel(width = 9, 
           tabsetPanel(
             tabPanel("Home", icon = icon("home"),
-                     p(strong("With given 95% Reference Intervals from normally distributed data new data can be generated!")," For this 
-                     the data from the publication:", strong("Next-generation reference intervals for pediatric 
-                     hematology [Zierk et.al. (2019)]"), "is used for Hemoglobindata (Loading the examples and the download takes a while!
+                     p(strong("With given 95 % Reference Intervals from normally distributed data new data can be generated!")," For this 
+                     the hemoglobindata from the publication:", strong("Next-generation reference intervals for pediatric 
+                     hematology [Zierk et.al. (2019)]"), "is used (Loading the examples and the download takes a while!
                      The downloaded data contains 10 datapoints per day. The given reference intervals are in blue and the median in red). 
                      Hemoglobin is an important iron-containing oxygen-transport protein in the erythrocytes and the changes of the value 
-                     by newborn are important to prevent jaundice in babies and to prevent anemia. The data is smoothed with smooth.spline()
-                     for the models use the Shiny App AdRI."),
+                     by newborn are important to prevent anemia. The data is smoothed with smooth.spline() and can be used
+                     in the Shiny App AdRI."),
                     downloadButton("download_precentile", "Data"), plotOutput("percentile", height = "500px")),
             
             tabPanel("Example - Hemoglobin", icon = icon("venus"), 
@@ -248,7 +248,6 @@ server <- function(input, output){
   
   
   output$hemoglobin_men <- renderPlot({
-    
     
     progress <- shiny::Progress$new()
     progress$set(message = "Load Hemoglobin examples (Men)...", detail = "", value = 2)
