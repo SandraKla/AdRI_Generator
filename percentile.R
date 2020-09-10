@@ -13,13 +13,13 @@
 
 percentile_function <- function(data_percentile, n_, text_name, text_unit){
   
-  # Read the data (use the Template)
+  # Read the data
   reference_data_orig <- read.csv2(data_percentile, header = TRUE, sep = ";", dec = ",", na.strings = "", stringsAsFactors = FALSE)
   
   # Change the colnames and type of the columns
   colnames(reference_data_orig) <- c("age", "down", "up")
   
-  #' Dataset:
+  #' Dataset (reference_data_orig):
   #'        age down up
   #' 1      365    2  6
   #' 2      730    2  6

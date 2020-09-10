@@ -111,13 +111,11 @@ ui <- fluidPage(
         mainPanel(width = 9, 
           tabsetPanel(
             tabPanel("Home", icon = icon("home"),
-                     p(strong("With given 95 % Reference Intervals from normally distributed data new data can be generated!")," For this 
-                     the hemoglobindata from the publication:", strong("Next-generation reference intervals for pediatric 
-                     hematology [Zierk et.al. (2019)]"), "is used (Loading the examples and the download takes a while!
-                     The downloaded data contains 10 datapoints per day. The given reference intervals are in blue and the median in red). 
-                     Hemoglobin is an important iron-containing oxygen-transport protein in the erythrocytes and the changes of the value 
-                     by newborn are important to prevent anemia. The data is smoothed with smooth.spline() and can be used
-                     in the Shiny App AdRI."),
+                     p(strong("With given 95 % Reference Intervals from normally distributed data new data can be generated!")," For the examples
+                     the hemoglobindata from Zierk et.al. (2019)", strong("Next-generation reference intervals for pediatric 
+                     hematology"), "is used. Loading the examples and the download takes a while!
+                     The downloaded data contains 10 datapoints per day. The given reference intervals are in blue and the median in red. 
+                     The data is smoothed with smooth.spline() and can be used in the Shiny App", strong("AdRI"),"."),
                     downloadButton("download_precentile", "Data"), plotOutput("percentile", height = "500px")),
             
             tabPanel("Example - Hemoglobin", icon = icon("venus"), 
