@@ -62,10 +62,13 @@ percentile_function <- function(data_percentile, n_, text_name, text_unit){
     table_data_reference <- rbind(table_data_reference, save_table)
   }
   
-  plot(table_data_reference$age, table_data_reference$value, xlab = "Age [Days]", ylab =  paste0(text_name," [",text_unit,"]"), 
+  plot(table_data_reference$age, table_data_reference$value, 
+       xlab = "Age [Days]", ylab =  paste0(text_name," [",text_unit,"]"), 
        pch = 20, cex = 0.75, col = "grey")
 
   lines(smooth.spline(table_data_reference$age,table_data_reference$value))
+  lines(reference_data$age, reference_data$down, col = "indianred")
+  lines(reference_data$age, reference_data$up, col = "cornflowerblue")
  
   ##################################### Preprocessing #############################################
   
