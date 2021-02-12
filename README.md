@@ -4,13 +4,10 @@
 
 **Shiny App for generating age-dependent analyt-data using functions or given reference intervals!**
 
-This Shiny App is a generator for creating age-dependent analyt-data (for more information see the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals_Generator/wiki)). The data can be downloaded and used in the Shiny App [**AdRI**](https://github.com/SandraKla/Age-dependent-Reference-Intervals) (See the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals/wiki/Dataset#adri-generator)). 
+This Shiny App is a generator for creating age-dependent analyt-data (for more information see the [Wiki](https://github.com/SandraKla/Age-dependent-Reference-Intervals_Generator/wiki)). The data can be downloaded and used in the Shiny App [**AdRI**](https://github.com/SandraKla/Age-dependent-Reference-Intervals/wiki/Dataset#adri-generator). 
 
 <img src="www/shiny_generator.png" align="center"/>
-
 <img src="www/shiny_percentile.png" align="center"/>
-
-<img src="www/shiny_example.png" align="center"/>
 
 ## Installation 
 
