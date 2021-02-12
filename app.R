@@ -1,7 +1,7 @@
 ####################################### Scripts ###################################################
 
-source("generator.R")
-source("percentile.R")
+source("R/generator.R")
+source("R/percentile.R")
 
 ####################################### Libraries #################################################
  
@@ -18,18 +18,18 @@ if("gamlss" %in% rownames(installed.packages())){
 ui <- fluidPage(
   
   theme = "style.css", 
-  navbarPage("Generator for Age-dependent-Reference-Intervals (AdRI)",
+  navbarPage("Generator for Age-dependent-Reference-Intervals",
              
   ##################################### Data-Generator ############################################
   
     tabPanel("Generator", icon = icon("calculator"),
              
       fluidRow(
-        column(3, wellPanel(
+        sidebarPanel(width = 2,
                      
           sliderInput("age_generator", "Maximum age in years:", 0, 100, 18),
           sliderInput("age_generator_steps", "Age steps in days:", 1, 365, 100),
-          sliderInput("ill_factor", "Select the pathological cases in %:", 0, 0.25, 0),
+          sliderInput("ill_factor", "Pathological cases [%]:", 0, 0.25, 0),
           numericInput("mu_factor_ill", "Factor added to mu for the pathological cases:", 1 , min = 0, max = 10000),
           
           selectInput("family_generator", "Distribution:", choices = list("Normaldistribution" = "NO", 
@@ -39,10 +39,10 @@ ui <- fluidPage(
                                                                          "Box-Cole Green t-Distribution" = "BCT")),
           numericInput("n_", "Number of observations:", 100, min = 10, max = 10000),
           textInput("text", "Name the Analyte:", value = "Analyte"),
-          textInput("text_unit", "Unit of the Analyte:", value = "Unit"))),
+          textInput("text_unit", "Unit of the Analyte:", value = "Unit")),
           
           ######################## Mu Simulation ###################################
-        column(2, wellPanel(
+          sidebarPanel(width = 2, id="sidebar",
           
           selectInput("trend_mu", "Trend for mu:", c(Linear = "linear", Exponentially = "exponentially")),
           conditionalPanel(condition = "input.trend_mu == 'linear'",  numericInput("intercept_mu", "Intercept:", 1),
@@ -72,23 +72,24 @@ ui <- fluidPage(
           conditionalPanel(condition = "input.trend_tau == 'linear'",  numericInput("intercept_tau", "Intercept:", 1),
                            numericInput("slope_tau", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_tau == 'exponentially'",  numericInput("a_tau", "A:", 1),
-                           numericInput("b_tau", "B:", 0)))),              
+                           numericInput("b_tau", "B:", 0))),              
             
-        mainPanel(width = 7,
+        mainPanel(width = 8,
           
           tabsetPanel(
-            tabPanel("Home", icon = icon("chart-line"), 
-                     p(strong("This Shiny App is a generator to create age-dependent data from labor analytes."), "Available are following distributions:
+            tabPanel("Plot", icon = icon("chart-line"), 
+                     p(strong("This Shiny App is a generator to create age-dependent data from labor analytes!"), "Available are following distributions:
                      Normaldistribution (with μ and σ), Lognormaldistribution (with μ and σ), Box-Cox Cole & Green Distribution (with μ, σ and ν),
                      Box-Cox t-Distribution (with μ, σ, ν and τ) and Box-Cox Power Exponential Distribution (with μ, σ, ν and τ). 
                      The parameters μ, σ, ν and τ are changing over the time with a linear or an exponentially function.
                      The linear function is y = m*x + b and the exponentially y = a*e^(x*b). All negative values are deleted automatically 
-                     and the data is saved in the form needed for Shiny App", strong("Age-dependent-Reference-Intervals (AdRI)"),". 
-                     The data is saved with no gender, unique values and the station is named Generator!"),
-                     downloadButton("download_plot","Plot"), plotOutput("plot_generator", height = "600px")),
+                     and the data is saved in the form needed for Shiny App Age-dependent-Reference-Intervals",
+                     a("AdRI", href="https://github.com/SandraKla/Age-dependent-Reference-Intervals"), 
+                     ". The data is saved with no gender, unique values and the station is named Generator!"),
+                     downloadButton("download_plot","Plot"), plotOutput("plot_generator", height = "550px")),
             
             tabPanel("Table", icon = icon("table"), downloadButton("download_data", "Data"),
-                     DT::dataTableOutput("table_generator"), verbatimTextOutput("summary")),
+                     DT::dataTableOutput("table_generator")), #, verbatimTextOutput("summary")),
             tabPanel("Settings", icon = icon("cogs"), downloadButton("download_settings", "Settings"), 
                      DT::dataTableOutput("settings")))
         )
@@ -102,28 +103,30 @@ ui <- fluidPage(
       sidebarLayout( 
         sidebarPanel(width = 3,
           
-          selectInput("data", "Select data with reference intervals:", choice = list.files(pattern = ".csv", recursive = TRUE)), hr(),
-          numericInput("n_percentile", "Number of observations:", 1, min = 1, max = 1000),
+          selectInput("data", "Select data with reference intervals:", choice = 
+                        list.files(pattern = ".csv", recursive = TRUE)), hr(),
+          numericInput("n_percentile", "Number of observations:", 1, min = 1, max = 100),
           textInput("text_percentile", "Name of the Value:", value = "Analyt"),
           textInput("text_unit_percentile", "Unit of the Value:", value = "Unit")
         ),
                
         mainPanel(width = 9, 
-          tabsetPanel(
-            tabPanel("Home", icon = icon("home"),
-                     p(strong("With given 95 % Reference Intervals from normally distributed data new data can be generated!")," For the examples
-                     the hemoglobindata from Zierk et.al. (2019)", strong("Next-generation reference intervals for pediatric 
-                     hematology"), "is used. Loading the examples and the download takes a while!
-                     The downloaded data contains 10 datapoints per day. The given reference intervals are in blue and the median in red. 
-                     The data is smoothed with smooth.spline() and can be used in the Shiny App", strong("AdRI"),"."),
-                    downloadButton("download_precentile", "Data"), plotOutput("percentile", height = "500px")),
+          #tabsetPanel(
+          #  tabPanel("Home", icon = icon("home"),
+                     p(strong("With given 95 % Reference Intervals from normally distributed data new data can be generated!")," The example dataset 
+                     is from Zierk et.al. (2019): Next-generation reference intervals for pediatric 
+                     hematology. The given reference intervals are in blue and the median in red. 
+                     The data is smoothed with smooth.spline() and can be used in the Shiny App",
+                     a("AdRI", href="https://github.com/SandraKla/Age-dependent-Reference-Intervals"),". In blue is the Upper
+                     Limit and in red the given Lower Limit."),
+                     downloadButton("download_precentile", "Data"), plotOutput("percentile", height = "500px"))
             
-            tabPanel("Example - Hemoglobin", icon = icon("venus"), 
-                     downloadButton("download_hem_women", "Data"), plotOutput("hemoglobin_women", height = "800px")),
-            tabPanel("Example - Hemoglobin", icon = icon("mars"), 
-                     downloadButton("download_hem_men", "Data"), plotOutput("hemoglobin_men", height = "800px"))
-          )
-        )
+            #tabPanel("Example - Hemoglobin", icon = icon("venus"), 
+            #         downloadButton("download_hem_women", "Data"), plotOutput("hemoglobin_women", height = "800px")),
+            #tabPanel("Example - Hemoglobin", icon = icon("mars"), 
+            #         downloadButton("download_hem_men", "Data"), plotOutput("hemoglobin_men", height = "800px"))
+          #)
+        #)
       )
     )
   )
@@ -174,7 +177,12 @@ server <- function(input, output){
   ##################################### Data-Generator ############################################
   
   output$table_generator <- DT::renderDataTable({
-    DT::datatable(data_generator(), caption = htmltools::tags$caption(style = 'caption-side: bottom; text-align: center;',
+    
+    data_generator <- data_generator()
+    colnames(data_generator) <- c("Age in Years","Age in Days", "Value", "Id", "Sex", "Data origin",
+                                   "Name of the analyte")
+    
+    DT::datatable(data_generator, caption = htmltools::tags$caption(style = 'caption-side: bottom; text-align: center;',
       'Table: Dataset'))
   })
   
@@ -233,30 +241,29 @@ server <- function(input, output){
 
   ################################ Data from Hemoglobin ############################
   
-  output$hemoglobin_women <- renderPlot({
-    
-    progress <- shiny::Progress$new()
-    progress$set(message = "Load Hemoglobin examples (Women)...", detail = "", value = 2)
-    
-    data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
-                                       stringsAsFactors = FALSE)
-    percentile_hemoglobin(data_hemoglobin_women, 10)
-    on.exit(progress$close())
-  })
-  
-  
-  output$hemoglobin_men <- renderPlot({
-    
-    progress <- shiny::Progress$new()
-    progress$set(message = "Load Hemoglobin examples (Men)...", detail = "", value = 2)
+  # output$hemoglobin_women <- renderPlot({
+  #   
+  #   progress <- shiny::Progress$new()
+  #   progress$set(message = "Load Hemoglobin examples (Women)...", detail = "", value = 2)
+  #   
+  #   data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
+  #                                      stringsAsFactors = FALSE)
+  #   percentile_hemoglobin(data_hemoglobin_women, 10)
+  #   on.exit(progress$close())
+  # })
+  # 
+  # 
+  # output$hemoglobin_men <- renderPlot({
+  #   
+  #   progress <- shiny::Progress$new()
+  #   progress$set(message = "Load Hemoglobin examples (Men)...", detail = "", value = 2)
+  # 
+  #   data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
+  #                                    stringsAsFactors = FALSE)
+  #   percentile_hemoglobin(data_hemoglobin_men, 10)
+  #   on.exit(progress$close())
+  # })
 
-    data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
-                                     stringsAsFactors = FALSE)
-    percentile_hemoglobin(data_hemoglobin_men, 10)
-    on.exit(progress$close())
-  })
-
-  
   ################################ Download ########################################
   
   output$download_data <- downloadHandler(
@@ -324,53 +331,53 @@ server <- function(input, output){
       write.csv2(table_percentile, file, row.names = FALSE)
   })
   
-  output$download_hem_women <- downloadHandler(
-    filename = function(){
-      paste0("Percentile_hemoglobin_women_", Sys.Date(),".csv")
-    },
-    content = function(file) {
-      
-      data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
-                                         stringsAsFactors = FALSE)
-      table_save <- percentile_hemoglobin(data_hemoglobin_women, 10)
-      
-      rows_table_ <- nrow(table_save) 
-      table_save <- table_save[table_save$value > 0,] 
-      
-      row.names(table_save) <- 1 : nrow(table_save)
-      
-      table_women <- data.frame(ALTER = table_save$age/365, ALTERTAG = table_save$age, ERGEBNIST1 = table_save$value)
-      table_women["PATISTAMMNR"] <- seq(1, nrow(table_women))
-      table_women["SEX"] <- "W"
-      table_women["EINSCODE"] <- "Generator"
-      table_women["CODE1"] <- "Hemoglobin"
-      
-      write.csv2(table_women, file, row.names = FALSE)
-  })
-  
-  output$download_hem_men <- downloadHandler(
-    filename = function(){
-      paste0("Percentile_hemoglobin_men_", Sys.Date(),".csv")
-    },
-    content = function(file) {
-
-      data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
-                                       stringsAsFactors = FALSE)
-      table_save <- percentile_hemoglobin(data_hemoglobin_men, 10)
-      
-      rows_table_ <- nrow(table_save) 
-      table_save <- table_save[table_save$value > 0,] 
-      
-      row.names(table_save) <- 1 : nrow(table_save)
-      
-      table_men <- data.frame(ALTER = table_save$age/365, ALTERTAG = table_save$age, ERGEBNIST1 = table_save$value)
-      table_men["PATISTAMMNR"] <- seq(1, nrow(table_men))
-      table_men["SEX"] <- "M"
-      table_men["EINSCODE"] <- "Generator"
-      table_men["CODE1"] <- "Hemoglobin"
-      
-      write.csv2(table_men, file, row.names = FALSE)
-  })
+  # output$download_hem_women <- downloadHandler(
+  #   filename = function(){
+  #     paste0("Percentile_hemoglobin_women_", Sys.Date(),".csv")
+  #   },
+  #   content = function(file) {
+  #     
+  #     data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
+  #                                        stringsAsFactors = FALSE)
+  #     table_save <- percentile_hemoglobin(data_hemoglobin_women, 10)
+  #     
+  #     rows_table_ <- nrow(table_save) 
+  #     table_save <- table_save[table_save$value > 0,] 
+  #     
+  #     row.names(table_save) <- 1 : nrow(table_save)
+  #     
+  #     table_women <- data.frame(ALTER = table_save$age/365, ALTERTAG = table_save$age, ERGEBNIST1 = table_save$value)
+  #     table_women["PATISTAMMNR"] <- seq(1, nrow(table_women))
+  #     table_women["SEX"] <- "W"
+  #     table_women["EINSCODE"] <- "Generator"
+  #     table_women["CODE1"] <- "Hemoglobin"
+  #     
+  #     write.csv2(table_women, file, row.names = FALSE)
+  # })
+  # 
+  # output$download_hem_men <- downloadHandler(
+  #   filename = function(){
+  #     paste0("Percentile_hemoglobin_men_", Sys.Date(),".csv")
+  #   },
+  #   content = function(file) {
+  # 
+  #     data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
+  #                                      stringsAsFactors = FALSE)
+  #     table_save <- percentile_hemoglobin(data_hemoglobin_men, 10)
+  #     
+  #     rows_table_ <- nrow(table_save) 
+  #     table_save <- table_save[table_save$value > 0,] 
+  #     
+  #     row.names(table_save) <- 1 : nrow(table_save)
+  #     
+  #     table_men <- data.frame(ALTER = table_save$age/365, ALTERTAG = table_save$age, ERGEBNIST1 = table_save$value)
+  #     table_men["PATISTAMMNR"] <- seq(1, nrow(table_men))
+  #     table_men["SEX"] <- "M"
+  #     table_men["EINSCODE"] <- "Generator"
+  #     table_men["CODE1"] <- "Hemoglobin"
+  #     
+  #     write.csv2(table_men, file, row.names = FALSE)
+  # })
 }
 ####################################### Run the application #######################################
 shinyApp(ui = ui, server = server)
