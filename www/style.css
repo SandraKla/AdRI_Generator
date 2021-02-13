@@ -31,4 +31,4 @@ body {
   background: #F5F5F5;
 }
 
-#sidebar { max-height: 500px; overflow: auto; }
+#sidebar{max-height: 750px; overflow-y: auto; }
