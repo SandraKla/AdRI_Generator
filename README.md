@@ -1,5 +1,10 @@
 # Age-dependent-Reference-Intervals_Generator 
 
+[![](https://img.shields.io/github/license/SandraKla/Age-dependent-Reference-Intervals.svg)]()
+[![](https://img.shields.io/github/last-commit/SandraKla/Age-dependent-Reference-Intervals/master.svg)]()
+[![](https://img.shields.io/github/languages/count/SandraKla/Age-dependent-Reference-Intervals.svg)]()
+[![](https://img.shields.io/github/languages/top/SandraKla/Age-dependent-Reference-Intervals.svg)]()
+
 <img src="www/Logo.svg" width="225px" height="150px" align="right"/>
 
 **Shiny App for generating age-dependent analyt-data using functions or given reference intervals!**
