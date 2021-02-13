@@ -39,7 +39,8 @@ ui <- fluidPage(
                                                                          "Box-Cole Green t-Distribution" = "BCT")),
           numericInput("n_", "Number of observations:", 100, min = 10, max = 10000),
           textInput("text", "Name the Analyte:", value = "Analyte"),
-          textInput("text_unit", "Unit of the Analyte:", value = "Unit")),
+          textInput("text_unit", "Unit of the Analyte:", value = "Unit"),
+          downloadButton("download_settings", icon = icon("download"),"Download the used Settings")),
           
           ######################## Mu Simulation ###################################
           sidebarPanel(width = 2, id="sidebar",
@@ -52,7 +53,7 @@ ui <- fluidPage(
           
           ######################## Sigma Simulation ################################
           
-          selectInput("trend_sigma", "Trend for sigma", c(Linear = "linear", Exponentially = "exponentially")),
+          selectInput("trend_sigma", "Trend for sigma:", c(Linear = "linear", Exponentially = "exponentially")),
           conditionalPanel(condition = "input.trend_sigma == 'linear'",  numericInput("intercept_sigma", "Intercept:", 1),
                            numericInput("slope_sigma", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_sigma == 'exponentially'",  numericInput("a_sigma", "A:", 1),
@@ -60,7 +61,7 @@ ui <- fluidPage(
           
           ######################## Nu Simulation ###################################
           
-          selectInput("trend_nu", "Trend for nu", c(Linear = "linear", Exponentially = "exponentially")),
+          selectInput("trend_nu", "Trend for nu:", c(Linear = "linear", Exponentially = "exponentially")),
           conditionalPanel(condition = "input.trend_nu == 'linear'",  numericInput("intercept_nu", "Intercept:", 1),
                            numericInput("slope_nu", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_nu == 'exponentially'",  numericInput("a_nu", "A:", 1),
@@ -68,7 +69,7 @@ ui <- fluidPage(
           
           ######################## Tau Simulation ##################################
           
-          selectInput("trend_tau", "Trend for tau", c(Linear = "linear", Exponentially = "exponentially")),
+          selectInput("trend_tau", "Trend for tau:", c(Linear = "linear", Exponentially = "exponentially")),
           conditionalPanel(condition = "input.trend_tau == 'linear'",  numericInput("intercept_tau", "Intercept:", 1),
                            numericInput("slope_tau", "Slope:", 0)),
           conditionalPanel(condition = "input.trend_tau == 'exponentially'",  numericInput("a_tau", "A:", 1),
@@ -89,9 +90,10 @@ ui <- fluidPage(
                      downloadButton("download_plot","Plot"), plotOutput("plot_generator", height = "550px")),
             
             tabPanel("Table", icon = icon("table"), downloadButton("download_data", "Data"),
-                     DT::dataTableOutput("table_generator")), #, verbatimTextOutput("summary")),
-            tabPanel("Settings", icon = icon("cogs"), downloadButton("download_settings", "Settings"), 
-                     DT::dataTableOutput("settings")))
+                     DT::dataTableOutput("table_generator"))#, #, verbatimTextOutput("summary")),
+            #tabPanel("Settings", icon = icon("cogs"), downloadButton("download_settings", "Settings"), 
+            #         DT::dataTableOutput("settings"))
+          )
         )
       )
     ),
