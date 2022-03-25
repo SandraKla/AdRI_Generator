@@ -64,9 +64,9 @@ percentile_function <- function(data_percentile, n_, text_name, text_unit){
   
   plot(table_data_reference$age, table_data_reference$value, 
        xlab = "Age [Days]", ylab =  paste0(text_name," [",text_unit,"]"), 
-       pch = 20, cex = 0.75, col = "grey")
+       pch = 20, cex = 0.75, col = "grey", ylim = c(0, max(reference_data$up) + max(reference_data$up)/10))
 
-  lines(smooth.spline(table_data_reference$age,table_data_reference$value))
+  #lines(smooth.spline(table_data_reference$age,table_data_reference$value))
   lines(reference_data$age, reference_data$down, col = "indianred")
   lines(reference_data$age, reference_data$up, col = "cornflowerblue")
  
@@ -80,9 +80,9 @@ percentile_function <- function(data_percentile, n_, text_name, text_unit){
 
   ##################################### Save the data #############################################
   
-  table_percentile <- data.frame(ALTER = table_data_reference$age/365, 
+  table_percentile <- data.frame(ALTER = round_df(table_data_reference$age/365,3), 
                                  ALTERTAG = table_data_reference$age, 
-                                 ERGEBNIST1 = table_data_reference$value)
+                                 ERGEBNIST1 = round_df(table_data_reference$value,3))
   table_percentile["PATISTAMMNR"] <- seq(1, nrow(table_percentile))
   table_percentile["SEX"] <- "NA"
   table_percentile["EINSCODE"] <- "Generator"

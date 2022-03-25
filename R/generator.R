@@ -2,6 +2,16 @@
 ############ Script for the generation of data with a linear or exponential trend #################
 ###################################################################################################
 
+#' Round numeric values from a dataframe
+#' 
+#' @param x Expects dataframe
+#' @param digits Digits to round
+round_df <- function(x, digits) {
+  numeric_columns <- sapply(x, mode) == 'numeric'
+  x[numeric_columns] <-  round(x[numeric_columns], digits)
+  return(x)
+}
+
 #' Generator for age dependent changing analytes, can be used in the Shiny App AdRI
 #'
 #' @param age Age range for the simulation
@@ -144,9 +154,9 @@ make_data <- function(age, age_steps, distribution,
 
   ##################################### Save the data #############################################
   
-  table_generator <- data.frame(ALTER = generated_data$age, 
+  table_generator <- data.frame(ALTER = round_df(generated_data$age,3), 
                            ALTERTAG = generated_data$age * 365,
-                           ERGEBNIST1 = generated_data$value)
+                           ERGEBNIST1 = round_df(generated_data$value,3))
   table_generator["PATISTAMMNR"] <- seq(1, nrow(table_generator)) # All values are unique
   table_generator["SEX"] <- "NA" # Sex is NA 
   table_generator["EINSCODE"] <- "Generator" 
