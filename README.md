@@ -44,6 +44,7 @@ All required packages are downloaded when starting this app or imported if they 
 ## Contact
 
 You are welcome to:
+
 - Submit suggestions and Bugs at: https://github.com/SandraKla/Age-dependent-Reference-Intervals_Generator/issues
 - Make a pull request on: https://github.com/SandraKla/Age-dependent-Reference-Intervals_Generator/pulls
 
