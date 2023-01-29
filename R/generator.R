@@ -154,13 +154,13 @@ make_data <- function(age, age_steps, distribution,
 
   ##################################### Save the data #############################################
   
-  table_generator <- data.frame(ALTER = round_df(generated_data$age,3), 
-                           ALTERTAG = generated_data$age * 365,
-                           ERGEBNIST1 = round_df(generated_data$value,3))
-  table_generator["PATISTAMMNR"] <- seq(1, nrow(table_generator)) # All values are unique
+  table_generator <- data.frame(AGE_YEARS = round_df(generated_data$age,3), 
+                           AGE_DAYS = generated_data$age * 365,
+                           VALUE = round_df(generated_data$value,3))
+  table_generator["ID"] <- seq(1, nrow(table_generator)) # All values are unique
   table_generator["SEX"] <- "NA" # Sex is NA 
-  table_generator["EINSCODE"] <- "Generator" 
-  table_generator["CODE1"] <- name_value
+  table_generator["STATION"] <- "Generator" 
+  table_generator["ANALYTE"] <- name_value
 
   return(table_generator)
 }

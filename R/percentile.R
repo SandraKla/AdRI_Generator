@@ -80,13 +80,13 @@ percentile_function <- function(data_percentile, n_, text_name, text_unit){
 
   ##################################### Save the data #############################################
   
-  table_percentile <- data.frame(ALTER = round_df(table_data_reference$age/365,3), 
-                                 ALTERTAG = table_data_reference$age, 
-                                 ERGEBNIST1 = round_df(table_data_reference$value,3))
-  table_percentile["PATISTAMMNR"] <- seq(1, nrow(table_percentile))
+  table_percentile <- data.frame(AGE_YEARS = round_df(table_data_reference$age/365,3), 
+                                 AGE_DAYS = table_data_reference$age, 
+                                 VALUE = round_df(table_data_reference$value,3))
+  table_percentile["ID"] <- seq(1, nrow(table_percentile))
   table_percentile["SEX"] <- "NA"
-  table_percentile["EINSCODE"] <- "Generator"
-  table_percentile["CODE1"] <- text_name
+  table_percentile["STATION"] <- "Generator"
+  table_percentile["ANALYTE"] <- text_name
 
   return(table_percentile)
 }
