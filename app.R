@@ -164,9 +164,11 @@ ui <- fluidPage(
       
       sidebarLayout( 
         sidebarPanel(width = 3,
-          
-          selectInput("data", "Select data with Reference Intervals:", choice = 
-                        list.files(pattern = ".csv", recursive = TRUE)), hr(),
+    
+          selectInput("data", "Select preinstalled dataset:", choice = list.files(pattern = ".csv", recursive = TRUE)), 
+          uiOutput("dataset_file"),
+          actionButton('reset', 'Reset Input', icon = icon("trash")),
+          hr(),
           
           numericInput("n_percentile", "Number of observations:", 1, min = 1, max = 100),
           textInput("text_percentile", "Name the Analyte:", value = "Analyt"),
@@ -205,6 +207,33 @@ server <- function(input, output){
   options(shiny.sanitize.errors = TRUE)
   
   ##################################### Reactive Expressions ######################################
+  
+  values <- reactiveValues(
+    upload_state = NULL
+  )
+  
+  observeEvent(input$dataset_file1, {
+    values$upload_state <- 'uploaded'
+  })
+  
+  observeEvent(input$reset, {
+    values$upload_state <- 'reset'
+  })
+  
+  dataset_input <- reactive({
+    if (is.null(values$upload_state)) {
+      return(NULL)
+    } else if (values$upload_state == 'uploaded') {
+      return(input$dataset_file1)
+    } else if (values$upload_state == 'reset') {
+      return(NULL)
+    }
+  })
+  
+  output$dataset_file <- renderUI({
+    input$reset ## Create a dependency with the reset button
+    fileInput('dataset_file1', label = NULL)
+  })
   
   data_generator <- reactive({
 
@@ -303,35 +332,14 @@ server <- function(input, output){
     progress <- shiny::Progress$new()
     progress$set(message = "Generate new data...", detail = "", value = 2)
     
-    percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
+    
+    if(is.null(dataset_input())){
+      percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
+    } else{
+      percentile_function(dataset_input()[["datapath"]], input$n_percentile, input$text_percentile, input$text_unit_percentile)
+    }
     on.exit(progress$close())
   }) 
-  
-
-  ################################ Data from Hemoglobin ############################
-  
-  # output$hemoglobin_women <- renderPlot({
-  #   
-  #   progress <- shiny::Progress$new()
-  #   progress$set(message = "Load Hemoglobin examples (Women)...", detail = "", value = 2)
-  #   
-  #   data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
-  #                                      stringsAsFactors = FALSE)
-  #   percentile_hemoglobin(data_hemoglobin_women, 10)
-  #   on.exit(progress$close())
-  # })
-  # 
-  # 
-  # output$hemoglobin_men <- renderPlot({
-  #   
-  #   progress <- shiny::Progress$new()
-  #   progress$set(message = "Load Hemoglobin examples (Men)...", detail = "", value = 2)
-  # 
-  #   data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
-  #                                    stringsAsFactors = FALSE)
-  #   percentile_hemoglobin(data_hemoglobin_men, 10)
-  #   on.exit(progress$close())
-  # })
 
   ################################ Download ########################################
   
@@ -399,7 +407,11 @@ server <- function(input, output){
       progress <- shiny::Progress$new()
       progress$set(message = "Save new data...", detail = "", value = 2)
       
-      table_percentile <- percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
+      if(is.null(dataset_input())){
+        table_percentile <- percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
+      } else{
+        table_percentile <- percentile_function(dataset_input()[["datapath"]], input$n_percentile, input$text_percentile, input$text_unit_percentile)
+      }
       on.exit(progress$close())
       write.csv2(table_percentile, file, row.names = FALSE)
   })
@@ -414,58 +426,14 @@ server <- function(input, output){
       progress <- shiny::Progress$new()
       progress$set(message = "Save new data...", detail = "", value = 2)
       
-      percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
+      if(is.null(dataset_input())){
+        percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
+      } else{
+        percentile_function(dataset_input()[["datapath"]], input$n_percentile, input$text_percentile, input$text_unit_percentile)
+      }
       on.exit(progress$close())
       dev.off()
     })
-  
-  # output$download_hem_women <- downloadHandler(
-  #   filename = function(){
-  #     paste0("Percentile_hemoglobin_women_", Sys.Date(),".csv")
-  #   },
-  #   content = function(file) {
-  #     
-  #     data_hemoglobin_women <- read.csv2("data/Hemoglobin_Women.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
-  #                                        stringsAsFactors = FALSE)
-  #     table_save <- percentile_hemoglobin(data_hemoglobin_women, 10)
-  #     
-  #     rows_table_ <- nrow(table_save) 
-  #     table_save <- table_save[table_save$value > 0,] 
-  #     
-  #     row.names(table_save) <- 1 : nrow(table_save)
-  #     
-  #     table_women <- data.frame(ALTER = table_save$age/365, ALTERTAG = table_save$age, ERGEBNIST1 = table_save$value)
-  #     table_women["PATISTAMMNR"] <- seq(1, nrow(table_women))
-  #     table_women["SEX"] <- "W"
-  #     table_women["EINSCODE"] <- "Generator"
-  #     table_women["CODE1"] <- "Hemoglobin"
-  #     
-  #     write.csv2(table_women, file, row.names = FALSE)
-  # })
-  # 
-  # output$download_hem_men <- downloadHandler(
-  #   filename = function(){
-  #     paste0("Percentile_hemoglobin_men_", Sys.Date(),".csv")
-  #   },
-  #   content = function(file) {
-  # 
-  #     data_hemoglobin_men <- read.csv2("data/Hemoglobin_Men.csv", header = TRUE, sep = ";", dec = ",", na.strings = "", 
-  #                                      stringsAsFactors = FALSE)
-  #     table_save <- percentile_hemoglobin(data_hemoglobin_men, 10)
-  #     
-  #     rows_table_ <- nrow(table_save) 
-  #     table_save <- table_save[table_save$value > 0,] 
-  #     
-  #     row.names(table_save) <- 1 : nrow(table_save)
-  #     
-  #     table_men <- data.frame(ALTER = table_save$age/365, ALTERTAG = table_save$age, ERGEBNIST1 = table_save$value)
-  #     table_men["PATISTAMMNR"] <- seq(1, nrow(table_men))
-  #     table_men["SEX"] <- "M"
-  #     table_men["EINSCODE"] <- "Generator"
-  #     table_men["CODE1"] <- "Hemoglobin"
-  #     
-  #     write.csv2(table_men, file, row.names = FALSE)
-  # })
 }
 ####################################### Run the application #######################################
 shinyApp(ui = ui, server = server)
