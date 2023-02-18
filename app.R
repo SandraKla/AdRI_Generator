@@ -11,18 +11,20 @@ source("R/percentile.R")
  
 if("DT" %in% rownames(installed.packages())){
   library(DT)} else{
-  install.packages("DT")}
+  install.packages("DT")
+  library(DT)}
 
 if("gamlss" %in% rownames(installed.packages())){
   library(gamlss)} else{
-  install.packages("gamlss")}
+  install.packages("gamlss")
+  library(gamlss)}
 
 ####################################### User Interface ############################################
 
 ui <- fluidPage(
   
   theme = "style.css", 
-  navbarPage("Generator for Age-dependent-Reference-Intervals",
+  navbarPage("AdRI_Generator",
              
   ##################################### Data-Generator ############################################
   
