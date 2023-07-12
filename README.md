@@ -1,15 +1,17 @@
 # Age-dependent-Reference-Intervals_Generator (AdRI_Generator)
 
+<img src="www/Logo.svg" width="225px" height="150px" align="right"/>
+
 ![](https://img.shields.io/github/license/SandraKla/AdRI_Generator.svg)
 ![](https://img.shields.io/github/last-commit/SandraKla/AdRI_Generator/master.svg)
 ![](https://img.shields.io/github/languages/count/SandraKla/AdRI_Generator.svg)
 ![](https://img.shields.io/github/languages/top/SandraKla/AdRI_Generator.svg)
 
-<img src="www/Logo.svg" width="225px" height="150px" align="right"/>
-
 **Shiny App for generating age-dependent analyt-data using functions or given reference intervals!**
 
-This Shiny App is a generator for creating age-dependent analyt-data (for more information see the [Wiki](https://github.com/SandraKla/AdRI_Generator/wiki)). The data can be downloaded and used in the Shiny App [**AdRI**](https://github.com/SandraKla/AdRI/wiki/Dataset-from-AdRI-Generator). 
+This Shiny App is a generator for creating age-dependent analyt-data (for more information see the [Wiki](https://github.com/SandraKla/AdRI_Generator/wiki)). The data can be downloaded and used in the Shiny App [**AdRI**](https://github.com/SandraKla/AdRI/wiki/Dataset-from-AdRI-Generator).
+<br>
+</br>
 
 <img src="www/shiny_generator.png" align="center"/>
 <img src="www/shiny_percentile.png" align="center"/>
