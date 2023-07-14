@@ -1,5 +1,5 @@
 ####################################### WELCOME TO THE SHINY APP ##################################
-####################################### from Sandra K. (2022) #####################################
+####################################### from Sandra K. (2023) #####################################
 ###################################################################################################
 
 ####################################### Scripts ###################################################
@@ -8,197 +8,307 @@ source("R/generator.R")
 source("R/percentile.R")
 
 ####################################### Libraries #################################################
- 
+
 if("DT" %in% rownames(installed.packages())){
   library(DT)} else{
-  install.packages("DT")
-  library(DT)}
+    install.packages("DT")
+    library(DT)}
 
 if("gamlss" %in% rownames(installed.packages())){
   library(gamlss)} else{
-  install.packages("gamlss")
-  library(gamlss)}
+    install.packages("gamlss")
+    library(gamlss)}
+
+if("shinydashboard" %in% rownames(installed.packages())){
+  library(shinydashboard)} else{
+    install.packages("shinydashboard")
+    library(shinydashboard)}
 
 ####################################### User Interface ############################################
 
-ui <- fluidPage(
-  
-  theme = "style.css", 
-  navbarPage("AdRI_Generator",
-             
-  ##################################### Data-Generator ############################################
-  
-    tabPanel("Generator", icon = icon("calculator"),
-             
+ui <- dashboardPage(
+  dashboardHeader(title = "AdRI_Generator", titleWidth = 200),
+  dashboardSidebar(width = 200,
+                   sidebarMenu(
+                     id = "sidebarid",
+                     ### Sidebar - Generator ###
+                     menuItem(
+                       "Generator",
+                       tabName = "generator",
+                       icon = icon("calculator"),
+                       selected = TRUE
+                     ),
+                     ### Sidebar - Percentile ###
+                     menuItem("Percentile",
+                              tabName = "percentile",
+                              icon = icon("folder"))
+                   )),
+  dashboardBody(tabItems(
+    ### MainPanel - Generator ###
+    
+    tabItem(
+      tabName = "generator",
+      
+      p(
+        strong(
+          "This Shiny App is a generator to create age-dependent data from labor analytes!"
+        ),
+        br(),
+        br(),
+        "The following distributions are available:
+                     Normaldistribution (with μ and σ), Lognormaldistribution (with μ and σ),
+                     Box-Cox Cole & Green Distribution (with μ, σ and ν),
+                     Box-Cox t-Distribution (with μ, σ, ν and τ) and Box-Cox Power Exponential Distribution (with μ, σ, ν and τ).
+                     The parameters μ, σ, ν and τ can be changed over the time with a linear or an exponentially function.
+                     The linear function is",
+        strong("y = m*x + b"),
+        "and the exponentially",
+        strong("y = a*e^(x*b)"),
+        ". All negative values are deleted automatically
+                     and the data is saved in the form needed for the Shiny App AdRI",
+        a("AdRI", href = "https://github.com/SandraKla/AdRI"),
+        ". The data is saved with no sex, with unique values and the station is named Generator."
+      ),
+      
       fluidRow(
-        sidebarPanel(width = 3,
-                     
-          sliderInput("age_generator", "Maximum age [years]:", 0, 100, 18),
-          sliderInput("age_generator_steps", "Age steps [days]:", 1, 365, 100),
-          hr(),
-          sliderInput("ill_factor", "Pathological cases [%]:", 0, 0.25, 0),
-          numericInput("mu_factor_ill", "Factor added to mean (µ) for the pathological cases:", 1 , min = 0, max = 10000),
-          hr(),
-          selectInput("family_generator", "Distribution:", choices = list("Normaldistribution" = "NO", 
-                                                                         "Log-Normaldistribution" = "LOGNO",
-                                                                         "Box-Cole and Green Distribution" = "BCCG",
-                                                                         "Box-Cole Green Exp. Distribution" = "BCPE",
-                                                                         "Box-Cole Green t-Distribution" = "BCT")),
-          numericInput("n_", "Number of observations:", 10, min = 10, max = 1000),
-          hr(),
-          textInput("text", "Name the Analyte:", value = "Analyte"),
-          textInput("text_unit", "Unit of the Analyte:", value = "Unit"),
-          hr(),
-          downloadButton("download_settings", icon = icon("download"),"Settings"),
-          downloadButton("download_plot","Plot"),
-          downloadButton("download_data", "Data")),
-          
-          ######################## Mu Simulation ###################################
-          sidebarPanel(width = 3,
-          
-          helpText("Setting for the distribution parameters:"),
-          selectInput("trend_mu", "Trend for µ:", c(Linear = "linear", Exponentially = "exponentially")),
-          conditionalPanel(condition = "input.trend_mu == 'linear'",  
-                           div(style="display:inline-block",numericInput("intercept_mu", "Intercept:", 1)),
-                           div(style="display:inline-block",numericInput("slope_mu", "Slope:", 0))),
-          conditionalPanel(condition = "input.trend_mu == 'exponentially'",  
-                           div(style="display:inline-block",numericInput("a_mu", "A:", 1)),
-                           div(style="display:inline-block",numericInput("b_mu", "B:", 0))), hr(),
-          
-          ######################## Sigma Simulation ################################
-          
-          selectInput("trend_sigma", "Trend for σ:", c(Linear = "linear", Exponentially = "exponentially")),
-          conditionalPanel(condition = "input.trend_sigma == 'linear'",  
-                           div(style="display:inline-block",numericInput("intercept_sigma", "Intercept:", 1)),
-                           div(style="display:inline-block",numericInput("slope_sigma", "Slope:", 0))),
-          conditionalPanel(condition = "input.trend_sigma == 'exponentially'",  
-                           div(style="display:inline-block",numericInput("a_sigma", "A:", 1)),
-                           div(style="display:inline-block",numericInput("b_sigma", "B:", 0))), 
-          
-          conditionalPanel(condition = "input.family_generator == 'BCCG' || 
-                                        input.family_generator == 'BCPE' ||
-                                        input.family_generator == 'BCT'", hr()),
-          
-          ######################## Nu Simulation ###################################
-          
-          conditionalPanel(condition = "input.family_generator == 'BCCG' || 
+        column(width = 6,
+               fluidRow(
+                 box(
+                   width = 6,
+                   title = tagList(shiny::icon("gear"), "Settings"),
+                   status = "primary",
+                   solidHeader = TRUE,
+                   collapsible = TRUE,
+                   sliderInput("age_generator", "Maximum age [years]:", 0, 100, 18),
+                   sliderInput("age_generator_steps", "Age steps [days]:", 1, 365, 100),
+                   hr(),
+                   sliderInput("ill_factor", "Pathological cases [%]:", 0, 0.25, 0),
+                   numericInput(
+                     "mu_factor_ill",
+                     "Factor added to mean (µ) for the pathological cases:",
+                     1 ,
+                     min = 0,
+                     max = 10000
+                   ),
+                   hr(),
+                   selectInput(
+                     "family_generator",
+                     "Distribution:",
+                     choices = list(
+                       "Normaldistribution" = "NO",
+                       "Log-Normaldistribution" = "LOGNO",
+                       "Box-Cole and Green Distribution" = "BCCG",
+                       "Box-Cole Green Exp. Distribution" = "BCPE",
+                       "Box-Cole Green t-Distribution" = "BCT"
+                     )
+                   ),
+                   numericInput(
+                     "n_",
+                     "Number of observations:",
+                     10,
+                     min = 10,
+                     max = 1000
+                   ),
+                   hr(),
+                   textInput("text", "Name the Analyte:", value = "Analyte"),
+                   textInput("text_unit", "Unit of the Analyte:", value = "Unit"),
+                   hr(),
+                   downloadButton("download_settings", icon = icon("download"), "Settings"),
+                   downloadButton("download_plot", "Plot"),
+                   downloadButton("download_data", "Data")
+                 ),
+                 
+                 box(
+                   ######################## Mu Simulation ###################################
+                   title = tagList(shiny::icon("gear"), "Settings for the distribution parameters"),
+                   width = 6,
+                   status = "primary",
+                   solidHeader = TRUE,
+                   collapsible = TRUE,
+                   
+                   selectInput(
+                     "trend_mu",
+                     "Trend for µ:",
+                     c(Linear = "linear", Exponentially = "exponentially")
+                   ),
+                   conditionalPanel(
+                     condition = "input.trend_mu == 'linear'",
+                     div(style = "display:inline-block", numericInput("intercept_mu", "Intercept:", 1)),
+                     div(style = "display:inline-block", numericInput("slope_mu", "Slope:", 0))
+                   ),
+                   conditionalPanel(
+                     condition = "input.trend_mu == 'exponentially'",
+                     div(style = "display:inline-block", numericInput("a_mu", "A:", 1)),
+                     div(style = "display:inline-block", numericInput("b_mu", "B:", 0))
+                   ),
+                   hr(),
+                   
+                   ######################## Sigma Simulation ################################
+                   selectInput(
+                     "trend_sigma",
+                     "Trend for σ:",
+                     c(Linear = "linear", Exponentially = "exponentially")
+                   ),
+                   conditionalPanel(
+                     condition = "input.trend_sigma == 'linear'",
+                     div(style = "display:inline-block", numericInput("intercept_sigma", "Intercept:", 1)),
+                     div(style = "display:inline-block", numericInput("slope_sigma", "Slope:", 0))
+                   ),
+                   conditionalPanel(
+                     condition = "input.trend_sigma == 'exponentially'",
+                     div(style = "display:inline-block", numericInput("a_sigma", "A:", 1)),
+                     div(style = "display:inline-block", numericInput("b_sigma", "B:", 0))
+                   ),
+                   
+                   conditionalPanel(
+                     condition = "input.family_generator == 'BCCG' ||
                                         input.family_generator == 'BCPE' ||
                                         input.family_generator == 'BCT'",
-          selectInput("trend_nu", "Trend for ν:", c(Linear = "linear", Exponentially = "exponentially"))),
-          
-          conditionalPanel(condition = "(input.family_generator == 'BCCG' || 
+                     hr()
+                   ),
+                   
+                   ######################## Nu Simulation ###################################
+                   conditionalPanel(
+                     condition = "input.family_generator == 'BCCG' ||
                                         input.family_generator == 'BCPE' ||
-                                        input.family_generator == 'BCT') &&
-                                        input.trend_nu == 'linear'",  
-                           div(style="display:inline-block", numericInput("intercept_nu", "Intercept:", 1)),
-                           div(style="display:inline-block",numericInput("slope_nu", "Slope:", 0))),
-          
-          
-          conditionalPanel(condition = "(input.family_generator == 'BCCG' || 
-                                        input.family_generator == 'BCPE' ||
-                                        input.family_generator == 'BCT') &&
-                                        input.trend_nu == 'exponentially'",  
-                           div(style="display:inline-block", numericInput("a_nu", "A:", 1)),
-                           div(style="display:inline-block", numericInput("b_nu", "B:", 0))), 
-        
-          
-          conditionalPanel(condition = "input.family_generator == 'BCPE' ||
-                                        input.family_generator == 'BCT'", hr()),
-          
-          ######################## Tau Simulation ##################################
-          
-          conditionalPanel(condition = "input.family_generator == 'BCPE' ||
                                         input.family_generator == 'BCT'",
-          selectInput("trend_tau", "Trend for τ:", c(Linear = "linear", Exponentially = "exponentially"))),
-          
-          conditionalPanel(condition = "(input.family_generator == 'BCPE' ||
+                     selectInput(
+                       "trend_nu",
+                       "Trend for ν:",
+                       c(Linear = "linear", Exponentially = "exponentially")
+                     )
+                   ),
+                   
+                   conditionalPanel(
+                     condition = "(input.family_generator == 'BCCG' ||
+                                        input.family_generator == 'BCPE' ||
                                         input.family_generator == 'BCT') &&
-                                        input.trend_tau == 'linear'",  
-                           div(style="display:inline-block", numericInput("intercept_tau", "Intercept:", 1)),
-                           div(style="display:inline-block", numericInput("slope_tau", "Slope:", 0))),
-          
-          conditionalPanel(condition = "(input.family_generator == 'BCPE' ||
-                                        input.family_generator == 'BCT') && 
-                                        input.trend_tau == 'exponentially'",  
-                           div(style="display:inline-block", numericInput("a_tau", "A:", 1)),
-                           div(style="display:inline-block", numericInput("b_tau", "B:", 0)))),              
-            
-        mainPanel(width = 6,
-          
-          tabsetPanel(
-            tabPanel("Plot", icon = icon("chart-line"), 
-                     p(strong("This Shiny App is a generator to create age-dependent data from labor analytes!"), br(), br(),
-                     "Available are following distributions:
-                     Normaldistribution (with μ and σ), Lognormaldistribution (with μ and σ), 
-                     Box-Cox Cole & Green Distribution (with μ, σ and ν),
-                     Box-Cox t-Distribution (with μ, σ, ν and τ) and Box-Cox Power Exponential Distribution (with μ, σ, ν and τ). 
-                     The parameters μ, σ, ν and τ can be changed over the time with a linear or an exponentially function.
-                     The linear function is", strong("y = m*x + b"), "and the exponentially", strong("y = a*e^(x*b)"),". 
-                     All negative values are deleted automatically 
-                     and the data is saved in the form needed for the Shiny App Age-dependent-Reference-Intervals",
-                     a("AdRI", href="https://github.com/SandraKla/Age-dependent-Reference-Intervals"), 
-                     ". The data is saved with no sex, with unique values and the station is named Generator!"),
-                     plotOutput("plot_generator", height = "550px")),
-            
-            tabPanel("Table", icon = icon("table"),
-                     p(strong("This Shiny App is a generator to create age-dependent data from labor analytes!"), br(), br(),
-                       "Available are following distributions:
-                     Normaldistribution (with μ and σ), Lognormaldistribution (with μ and σ), 
-                     Box-Cox Cole & Green Distribution (with μ, σ and ν),
-                     Box-Cox t-Distribution (with μ, σ, ν and τ) and Box-Cox Power Exponential Distribution (with μ, σ, ν and τ). 
-                     The parameters μ, σ, ν and τ can be changed over the time with a linear or an exponentially function.
-                     The linear function is", strong("y = m*x + b"), "and the exponentially", strong("y = a*e^(x*b)"),". 
-                     All negative values are deleted automatically 
-                     and the data is saved in the form needed for the Shiny App Age-dependent-Reference-Intervals",
-                      a("AdRI", href="https://github.com/SandraKla/Age-dependent-Reference-Intervals"), 
-                      ". The data is saved with no sex, with unique values and the station is named Generator!"),
-                     DT::dataTableOutput("table_generator"))#, #, verbatimTextOutput("summary")),
-            #tabPanel("Settings", icon = icon("cogs"), downloadButton("download_settings", "Settings"), 
-            #         DT::dataTableOutput("settings"))
+                                        input.trend_nu == 'linear'",
+                     div(style = "display:inline-block", numericInput("intercept_nu", "Intercept:", 1)),
+                     div(style = "display:inline-block", numericInput("slope_nu", "Slope:", 0))
+                   ),
+                   
+                   
+                   conditionalPanel(
+                     condition = "(input.family_generator == 'BCCG' ||
+                                        input.family_generator == 'BCPE' ||
+                                        input.family_generator == 'BCT') &&
+                                        input.trend_nu == 'exponentially'",
+                     div(style = "display:inline-block", numericInput("a_nu", "A:", 1)),
+                     div(style = "display:inline-block", numericInput("b_nu", "B:", 0))
+                   ),
+                   
+                   
+                   conditionalPanel(condition = "input.family_generator == 'BCPE' ||
+                                        input.family_generator == 'BCT'", hr()),
+                   
+                   ######################## Tau Simulation ##################################
+                   conditionalPanel(
+                     condition = "input.family_generator == 'BCPE' ||
+                                        input.family_generator == 'BCT'",
+                     selectInput(
+                       "trend_tau",
+                       "Trend for τ:",
+                       c(Linear = "linear", Exponentially = "exponentially")
+                     )
+                   ),
+                   
+                   conditionalPanel(
+                     condition = "(input.family_generator == 'BCPE' ||
+                                        input.family_generator == 'BCT') &&
+                                        input.trend_tau == 'linear'",
+                     div(style = "display:inline-block", numericInput("intercept_tau", "Intercept:", 1)),
+                     div(style = "display:inline-block", numericInput("slope_tau", "Slope:", 0))
+                   ),
+                   
+                   conditionalPanel(
+                     condition = "(input.family_generator == 'BCPE' ||
+                                        input.family_generator == 'BCT') &&
+                                        input.trend_tau == 'exponentially'",
+                     div(style = "display:inline-block", numericInput("a_tau", "A:", 1)),
+                     div(style = "display:inline-block", numericInput("b_tau", "B:", 0))
+                   )
+                 )
+               )),
+        column(
+          width = 6,
+          box(
+            title =  tagList(shiny::icon("chart-line"), "Plot"),
+            status = "warning",
+            width = 12,
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            plotOutput("plot_generator", height = "550px")
+          ),
+          column(width = 6),
+          box(
+            title =  tagList(shiny::icon("table"), "Table"),
+            status = "warning",
+            width = 12,
+            solidHeader = TRUE,
+            collapsible = TRUE,
+            collapsed = TRUE,
+            DT::dataTableOutput("table_generator")
           )
         )
       )
     ),
-      
-    ################################### Generator with given Percentiles ##########################
-  
-    tabPanel("Percentile", icon = icon("folder"),
-      
-      sidebarLayout( 
-        sidebarPanel(width = 3,
     
-          selectInput("data", "Select preinstalled dataset:", choice = list.files(pattern = ".csv", recursive = TRUE)), 
-          uiOutput("dataset_file"),
-          actionButton('reset', 'Reset Input', icon = icon("trash")),
-          hr(),
-          
-          numericInput("n_percentile", "Number of observations:", 1, min = 1, max = 100),
-          textInput("text_percentile", "Name the Analyte:", value = "Analyt"),
-          textInput("text_unit_percentile", "Unit of the Analyte:", value = "Unit"), hr(),
-          downloadButton("download_percentileplot","Plot"), downloadButton("download_precentile", "Data")
+    ### Percentile ###
+    tabItem(
+      tabName = "percentile",
+      
+      p(
+        strong(
+          "This Shiny App is a generator to create age-dependent data from labor analytes!"
         ),
-               
-        mainPanel(width = 9, 
-          #tabsetPanel(
-          #  tabPanel("Home", icon = icon("home"),
-                     p(strong("This Shiny App is a generator to create age-dependent data from labor analytes!"), br(), br(),
-                     "New data can be generated With given 95 % Reference Intervals from normally distributed data.
-                     The example dataset is from Zierk et.al. (2019): Next-generation reference intervals for pediatric 
-                     hematology. In blue is the Upper Limit and in red the given Lower Limit of the Reference Intervals, the gray dots 
-                     are the generated datapoints. The data can be used in the Shiny App",
-                     a("AdRI", href="https://github.com/SandraKla/Age-dependent-Reference-Intervals"),". 
-                     The data is saved with no sex, with unique values and the station is named Generator!"),
-                     plotOutput("percentile", height = "500px"))
-            
-            #tabPanel("Example - Hemoglobin", icon = icon("venus"), 
-            #         downloadButton("download_hem_women", "Data"), plotOutput("hemoglobin_women", height = "800px")),
-            #tabPanel("Example - Hemoglobin", icon = icon("mars"), 
-            #         downloadButton("download_hem_men", "Data"), plotOutput("hemoglobin_men", height = "800px"))
-          #)
-        #)
+        br(),
+        br(),
+        "New data can be generated from normally distributed data with specified 95% reference intervals.
+                     The example dataset is from Zierk et.al. (2019): Next-generation reference intervals for pediatric
+                     hematology. In blue is the upper limit and in red is the given lower limit of the reference intervals, the grey dots are the generated data points.
+        The data can be used in the Shiny App",
+        a("AdRI", href = "https://github.com/SandraKla/AdRI"),
+        ". The data is saved with no sex, with unique values and the station is named Generator!"
+      ),
+      
+      box(
+        title = tagList(shiny::icon("gear"), "Settings"),
+        status = "primary",
+        solidHeader = TRUE,
+        collapsible = TRUE,
+        selectInput(
+          "data",
+          "Select preinstalled dataset:",
+          choice = list.files(pattern = ".csv", recursive = TRUE)
+        ),
+        uiOutput("dataset_file"),
+        actionButton('reset', 'Reset Input', icon = icon("trash")),
+        hr(),
+        
+        numericInput(
+          "n_percentile",
+          "Number of observations:",
+          1,
+          min = 1,
+          max = 100
+        ),
+        textInput("text_percentile", "Name the Analyte:", value = "Analyt"),
+        textInput("text_unit_percentile", "Unit of the Analyte:", value = "Unit"),
+        hr(),
+        downloadButton("download_percentileplot", "Plot"),
+        downloadButton("download_precentile", "Data")
+      ),
+      
+      box(
+        title = tagList(shiny::icon("chart-line"), "Plot"),
+        status = "warning",
+        solidHeader = TRUE,
+        collapsible = TRUE,
+        plotOutput("percentile", height = "500px")
       )
     )
-  )
+  ))
 )
 
 ####################################### Server ####################################################
