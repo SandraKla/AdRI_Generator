@@ -4,8 +4,6 @@
 
 ![](https://img.shields.io/github/license/SandraKla/AdRI_Generator.svg)
 ![](https://img.shields.io/github/last-commit/SandraKla/AdRI_Generator/master.svg)
-![](https://img.shields.io/github/languages/count/SandraKla/AdRI_Generator.svg)
-![](https://img.shields.io/github/languages/top/SandraKla/AdRI_Generator.svg)
 
 **Shiny App for generating age-dependent analyt-data using functions or given reference intervals!**
 
