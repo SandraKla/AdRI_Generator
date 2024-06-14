@@ -82,14 +82,8 @@ ui <- dashboardPage(
                    sliderInput("age_generator", "Maximum age [years]:", 0, 100, 18),
                    sliderInput("age_generator_steps", "Age steps [days]:", 1, 365, 100),
                    hr(),
-                   sliderInput("ill_factor", "Pathological cases [%]:", 0, 0.25, 0),
-                   numericInput(
-                     "mu_factor_ill",
-                     "Factor added to mean (µ) for the pathological cases:",
-                     1 ,
-                     min = 0,
-                     max = 10000
-                   ),
+                   sliderInput("ill_factor", "Pathological cases [%]:", 0, 0.5, 0),
+                   sliderInput("mu_factor_ill", "Factor added to mean (µ) for the pathological cases:", 0, 1000, 1),
                    hr(),
                    selectInput(
                      "family_generator",
@@ -102,13 +96,7 @@ ui <- dashboardPage(
                        "Box-Cole Green t-Distribution" = "BCT"
                      )
                    ),
-                   numericInput(
-                     "n_",
-                     "Number of observations:",
-                     10,
-                     min = 10,
-                     max = 1000
-                   ),
+                   sliderInput("n_", "Number of observations:", 10, 1000, 10),
                    hr(),
                    textInput("text", "Name the Analyte:", value = "Analyte"),
                    textInput("text_unit", "Unit of the Analyte:", value = "Unit"),
@@ -348,7 +336,6 @@ server <- function(input, output){
   })
   
   data_generator <- reactive({
-
     # Composition of users settings
     if(input$trend_mu == "linear"){
       formula_mu <- paste("linear(i,",input$slope_mu,",",input$intercept_mu,")")}
@@ -388,7 +375,6 @@ server <- function(input, output){
   ##################################### Data-Generator ############################################
   
   output$table_generator <- DT::renderDataTable({
-    
     data_generator <- data_generator()
     colnames(data_generator) <- c("Age [years]","Age [days]", "Value", "Id", "Sex", "Origin", "Analyte")
     
@@ -443,7 +429,6 @@ server <- function(input, output){
   output$percentile <- renderPlot({
     progress <- shiny::Progress$new()
     progress$set(message = "Generate new data...", detail = "", value = 2)
-    
     
     if(is.null(dataset_input())){
       percentile_function(input$data, input$n_percentile, input$text_percentile, input$text_unit_percentile)
