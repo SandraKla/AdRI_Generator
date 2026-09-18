@@ -143,12 +143,12 @@ ui <- dashboardPage(
                    ),
                    conditionalPanel(
                      condition = "input.trend_mu == 'linear'",
-                     div(style = "display:inline-block", numericInput("intercept_mu", "Intercept:", 1)),
+                     div(style = "display:inline-block", numericInput("intercept_mu", "Intercept:", 1,  min = 0)),
                      div(style = "display:inline-block", numericInput("slope_mu", "Slope:", 0))
                    ),
                    conditionalPanel(
                      condition = "input.trend_mu == 'exponentially'",
-                     div(style = "display:inline-block", numericInput("a_mu", "A:", 1)),
+                     div(style = "display:inline-block", numericInput("a_mu", "A:", 1, min = 0)),
                      div(style = "display:inline-block", numericInput("b_mu", "B:", 0))
                    ),
                    hr(),
@@ -161,12 +161,12 @@ ui <- dashboardPage(
                    ),
                    conditionalPanel(
                      condition = "input.trend_sigma == 'linear'",
-                     div(style = "display:inline-block", numericInput("intercept_sigma", "Intercept:", 1)),
+                     div(style = "display:inline-block", numericInput("intercept_sigma", "Intercept:", 1, min = 0.001)),
                      div(style = "display:inline-block", numericInput("slope_sigma", "Slope:", 0))
                    ),
                    conditionalPanel(
                      condition = "input.trend_sigma == 'exponentially'",
-                     div(style = "display:inline-block", numericInput("a_sigma", "A:", 1)),
+                     div(style = "display:inline-block", numericInput("a_sigma", "A:", 1, min = 0.001)),
                      div(style = "display:inline-block", numericInput("b_sigma", "B:", 0))
                    ),
 
@@ -580,34 +580,87 @@ server <- function(input, output){
 
   output$dataset_file <- renderUI({
     input$reset ## Create a dependency with the reset button
-    fileInput('dataset_file1', label = NULL)
+    fileInput('dataset_file1', label = NULL, accept = c(".csv"))
   })
 
   data_generator <- reactive({
-    # Composition of users settings
+    # Issue #15: 基础输入防空与正数拦截
+    validate(
+      need(!is.null(input$age_generator) && !is.na(input$age_generator) && input$age_generator > 0,
+           "Please provide a valid maximum age (> 0)!"),
+      need(!is.null(input$age_generator_steps) && !is.na(input$age_generator_steps) && input$age_generator_steps > 0,
+           "Please provide valid age steps (> 0)!"),
+      need(!is.null(input$n_) && !is.na(input$n_) && input$n_ > 0,
+           "Number of observations must be greater than 0!")
+    )
+
+    # Issue #15: Mu 校验
     if(input$trend_mu == "linear"){
-      formula_mu <- paste("linear(x,",input$slope_mu,",",input$intercept_mu,")")}
+      validate(
+        need(!is.null(input$intercept_mu) && !is.na(input$intercept_mu) && input$intercept_mu >= 0, "Check if you have used the correct mu!"),
+        need(!is.null(input$slope_mu) && !is.na(input$slope_mu) && input$slope_mu >= 0, "Check if you have used the correct slope_mu!")
+      )
+      formula_mu <- paste("linear(x,",input$slope_mu,",",input$intercept_mu,")")
+    }
 
     if(input$trend_mu == "exponentially"){
-      formula_mu <- paste("expo(x,", input$a_mu,",",input$b_mu,")")}
+      validate(
+        need(!is.null(input$a_mu) && !is.na(input$a_mu) && input$a_mu > 0, "Check if you have used a valid A for mu (> 0)!"),
+        need(!is.null(input$b_mu) && !is.na(input$b_mu), "Check if you have used a valid B for mu!")
+      )
+      formula_mu <- paste("expo(x,", input$a_mu,",",input$b_mu,")")
+    }
 
+    # Issue #15: Sigma 校验 (Sigma 必须 > 0)
     if(input$trend_sigma == "linear"){
-      formula_sigma <- paste("linear(x,",input$slope_sigma,",",input$intercept_sigma,")")}
+      validate(
+        need(!is.null(input$intercept_sigma) && !is.na(input$intercept_sigma) && input$intercept_sigma > 0, "Sigma intercept must be greater than 0!"),
+        need(!is.null(input$slope_sigma) && !is.na(input$slope_sigma), "Check if you have used a valid slope for sigma!")
+      )
+      formula_sigma <- paste("linear(x,",input$slope_sigma,",",input$intercept_sigma,")")
+    }
 
     if(input$trend_sigma == "exponentially"){
-      formula_sigma <- paste("expo(x,", input$a_sigma,",",input$b_sigma,")")}
+      validate(
+        need(!is.null(input$a_sigma) && !is.na(input$a_sigma) && input$a_sigma > 0, "A of sigma must be greater than 0!"),
+        need(!is.null(input$b_sigma) && !is.na(input$b_sigma), "Check if you have used a valid B for sigma!")
+      )
+      formula_sigma <- paste("expo(x,", input$a_sigma,",",input$b_sigma,")")
+    }
 
+    # Issue #15: Nu Test
     if(input$trend_nu == "linear"){
-      formula_nu <- paste("linear(x,",input$slope_nu,",",input$intercept_nu,")")}
+      validate(
+        need(!is.null(input$intercept_nu) && !is.na(input$intercept_nu), "Check if you have used a valid intercept for nu!"),
+        need(!is.null(input$slope_nu) && !is.na(input$slope_nu), "Check if you have used a valid slope for nu!")
+      )
+      formula_nu <- paste("linear(x,",input$slope_nu,",",input$intercept_nu,")")
+    }
 
     if(input$trend_nu == "exponentially"){
-      formula_nu <- paste("expo(x,", input$a_nu,",",input$b_nu,")")}
+      validate(
+        need(!is.null(input$a_nu) && !is.na(input$a_nu), "Check if you have used a valid A for nu!"),
+        need(!is.null(input$b_nu) && !is.na(input$b_nu), "Check if you have used a valid B for nu!")
+      )
+      formula_nu <- paste("expo(x,", input$a_nu,",",input$b_nu,")")
+    }
 
+    # Issue #15: Tau Test
     if(input$trend_tau == "linear"){
-      formula_tau <- paste("linear(x,",input$slope_tau,",",input$intercept_tau,")")}
+      validate(
+        need(!is.null(input$intercept_tau) && !is.na(input$intercept_tau), "Check if you have used a valid intercept for tau!"),
+        need(!is.null(input$slope_tau) && !is.na(input$slope_tau), "Check if you have used a valid slope for tau!")
+      )
+      formula_tau <- paste("linear(x,",input$slope_tau,",",input$intercept_tau,")")
+    }
 
     if(input$trend_tau == "exponentially"){
-      formula_tau <- paste("expo(x,", input$a_tau,",",input$b_tau,")")}
+      validate(
+        need(!is.null(input$a_tau) && !is.na(input$a_tau), "Check if you have used a valid A for tau!"),
+        need(!is.null(input$b_tau) && !is.na(input$b_tau), "Check if you have used a valid B for tau!")
+      )
+      formula_tau <- paste("expo(x,", input$a_tau,",",input$b_tau,")")
+    }
 
     progress <- shiny::Progress$new()
     progress$set(message = "Generate new data...", detail = "", value = 2)
@@ -725,6 +778,20 @@ server <- function(input, output){
   ################################ Generator (Percentile) ##########################
 
   output$percentile <- renderPlot({
+    validate(
+      need(!is.null(input$n_percentile) && !is.na(input$n_percentile) && input$n_percentile > 0,
+           "Number of observations must be greater than 0!")
+    )
+
+    # Requirements for the .csv template in Issue #15
+    if (!is.null(dataset_input())) {
+      validate(
+        need(endsWith(tolower(dataset_input()[["datapath"]]), ".csv") ||
+               endsWith(tolower(dataset_input()[["name"]]), ".csv"),
+             "Check if you have used the correct template!")
+      )
+    }
+
     progress <- shiny::Progress$new()
     progress$set(message = "Generate new data...", detail = "", value = 2)
 
